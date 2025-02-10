@@ -1,10 +1,3 @@
-//
-//  ContentView.swift
-//  ConsumptionApp Watch App
-//
-//  Created by Morris-Stiff R O (FCES) on 02/02/2025.
-//
-
 import SwiftUI
 
 struct ContentView: View {
@@ -14,7 +7,21 @@ struct ContentView: View {
 
     @State private var showAddMeal = false
     @State private var showSettings = false
+    @State private var crownValue: Double = 0.0  // Tracks Digital Crown rotation
 
+    private func scheduleMidnightReset() {
+        let now = Date()
+        let calendar = Calendar.current
+        let midnight = calendar.nextDate(after: now, matching: DateComponents(hour: 0, minute: 0, second: 0), matchingPolicy: .nextTime)!
+        let timeInterval = midnight.timeIntervalSince(now)
+        
+        Timer.scheduledTimer(withTimeInterval: timeInterval, repeats: false) { _ in
+            waterVM.resetWaterIntake()
+            mealVM.resetMeals()
+            scheduleMidnightReset() // Schedule the next reset
+        }
+    }
+    
     var body: some View {
         NavigationView {
             VStack {
@@ -22,12 +29,32 @@ struct ContentView: View {
                 VStack {
                     Text("Water Intake")
                         .font(.headline)
-                    ProgressView(value: waterVM.waterIntake.consumedLitres, total: waterVM.waterIntake.targetLitres)
-                        .progressViewStyle(LinearProgressViewStyle(tint: .blue))
-                        .padding()
-                    Text("\(waterVM.waterIntake.consumedLitres, specifier: "%.1f")L / \(waterVM.waterIntake.targetLitres, specifier: "%.1f")L")
+                    
+                    ProgressView(
+                        value: min(max(waterVM.waterConsumed, 0), waterVM.targetLitres),
+                        total: waterVM.targetLitres
+                    )
+                    .progressViewStyle(LinearProgressViewStyle(tint: .blue))
+                    .padding()
+
+
+                    Text("\(waterVM.waterConsumed, specifier: "%.1f")L / \(waterVM.targetLitres, specifier: "%.1f")L")
                         .font(.caption)
-                    Button(action: { waterVM.addWater(amount: 0.25) }) {
+
+                    // Digital Crown Input
+                    Text("Adjust with Crown")
+                        .font(.caption2)
+                        .foregroundColor(.gray)
+
+                    // Incremental Change with Crown
+                    Slider(value: $crownValue, in: 0...5, step: 0.25)
+                        .onChange(of: crownValue) {
+                            waterVM.waterConsumed = crownValue
+                        }
+                        .padding()
+
+                    // Quick Add Button
+                    Button(action: { waterVM.addWater(0.25) }) {
                         Text("+250ml")
                             .padding(8)
                             .background(Color.blue)
@@ -43,6 +70,7 @@ struct ContentView: View {
                 VStack {
                     Text("Meals & Snacks")
                         .font(.headline)
+
                     List {
                         ForEach(mealVM.meals) { meal in
                             VStack(alignment: .leading) {
@@ -53,7 +81,9 @@ struct ContentView: View {
                                     .foregroundColor(.gray)
                             }
                         }
-                        .onDelete(perform: mealVM.deleteMeal)
+                        .onDelete { indexSet in
+                            mealVM.deleteMeal(at: indexSet)
+                        }
                     }
                 }
 
@@ -85,6 +115,9 @@ struct ContentView: View {
                 SettingsView(preferencesVM: preferencesVM, waterVM: waterVM)
             }
             .navigationTitle("Consumption Tracker")
+            .onAppear {
+                scheduleMidnightReset()
+            }
         }
     }
 }

@@ -23,12 +23,18 @@ class MealViewModel: ObservableObject {
         }
     }
     
-    func addMeal(_ meal: Meal) {
-        meals.append(meal)
+    func addMeal(category: String, calories: Int) {
+        let newMeal = Meal(category: category, calories: calories)
+        meals.append(newMeal)
+        saveMeals()
     }
     
     func resetMeals() {
         meals = []
+    }
+    
+    func deleteMeal(at offsets: IndexSet) {
+            meals.remove(atOffsets: offsets)
     }
     
     private func saveMeals() {

@@ -1,10 +1,3 @@
-//
-//  SettingsView.swift
-//  ConsumptionApp
-//
-//  Created by Morris-Stiff R O (FCES) on 02/02/2025.
-//
-
 import SwiftUI
 
 struct SettingsView: View {
@@ -12,41 +5,43 @@ struct SettingsView: View {
     @ObservedObject var preferencesVM: UserPreferencesViewModel
     @ObservedObject var waterVM: WaterIntakeViewModel
 
-    @State private var newWaterTarget: String = ""
+    @State private var newWaterTarget: Double = 2.0 // Default starting point
 
     var body: some View {
         NavigationView {
             Form {
                 Section(header: Text("Water Goal")) {
-                    TextField("Water Target (L)", text: $newWaterTarget)
-                        .onChange(of: newWaterTarget) {
-                            let filtered = newWaterTarget.filter { "0123456789.".contains($0) }
-                            let decimalCount = filtered.filter { $0 == "." }.count
-                            if decimalCount <= 1 {
-                                newWaterTarget = filtered
-                            } else {
-                                newWaterTarget = String(filtered.dropLast())
-                            }
-                        }
+                    VStack {
+                        Text("Target: \(newWaterTarget, specifier: "%.1f") L")
+                            .font(.headline)
+                            .padding(.bottom, 4)
 
-                    Button("Update Target") {
-                        if let target = Double(newWaterTarget) {
-                            preferencesVM.updateWaterTarget(to: target)
-                            waterVM.updateTarget(target)
+                        Slider(value: $newWaterTarget, in: 0...5, step: 0.1)
+                            .accentColor(.blue)
+
+                        Button("Update Target") {
+                            preferencesVM.updateWaterTarget(to: newWaterTarget)
+                            waterVM.updateTarget(newWaterTarget)
                             presentationMode.wrappedValue.dismiss()
                         }
+                        .padding()
+                        .background(Color.green)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
                     }
-                    .disabled(newWaterTarget.isEmpty)
                 }
 
                 Section(header: Text("Reminders")) {
                     Toggle("Enable Reminders", isOn: $preferencesVM.preferences.remindersEnabled)
-                        .onChange(of: preferencesVM.preferences.remindersEnabled) {
+                        .onChange(of: preferencesVM.preferences.remindersEnabled) { _, _ in
                             preferencesVM.toggleReminders()
                         }
                 }
             }
             .navigationTitle("Settings")
+            .onAppear {
+                newWaterTarget = preferencesVM.preferences.waterTarget
+            }
         }
     }
 }

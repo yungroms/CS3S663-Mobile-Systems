@@ -15,3 +15,4 @@ struct ConsumptionApp_Watch_AppApp: App {
         }
     }
 }
+

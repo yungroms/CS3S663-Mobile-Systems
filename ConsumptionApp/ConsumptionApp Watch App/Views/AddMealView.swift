@@ -1,38 +1,39 @@
-//
-//  AddMealView.swift
-//  ConsumptionApp
-//
-//  Created by Morris-Stiff R O (FCES) on 02/02/2025.
-//
-
 import SwiftUI
 
 struct AddMealView: View {
     @Environment(\.presentationMode) var presentationMode
     @ObservedObject var mealVM: MealViewModel
 
-    @State private var category = ""
-    @State private var calories = ""
+    @State private var selectedCategory = "Breakfast"
+    @State private var calories: Double = 0
+
+    let categories = ["Breakfast", "Lunch", "Dinner", "Snack"]
 
     var body: some View {
         NavigationView {
             Form {
                 Section(header: Text("Meal Details")) {
-                    TextField("Category (e.g., Breakfast, Snack)", text: $category)
-                    TextField("Calories", text: $calories)
-                        .onChange(of: calories) {
-                            // Allow only numbers
-                            calories = calories.filter { "0123456789".contains($0) }
+                    Picker("Category", selection: $selectedCategory) {
+                        ForEach(categories, id: \ .self) { category in
+                            Text(category)
                         }
+                    }
+                    .pickerStyle(WheelPickerStyle())
+
+                    Stepper(value: $calories, in: 0...2000, step: 50) {
+                        Text("Calories: \(Int(calories)) kcal")
+                    }
+                    .focusable(true)
+                    .digitalCrownRotation($calories, from: 0, through: 2000, by: 50)
                 }
 
                 Button("Add Meal") {
-                    if let cal = Int(calories), !category.isEmpty {
-                        mealVM.addMeal(category: category, calories: cal)
+                    if calories > 0 {
+                        mealVM.addMeal(category: selectedCategory, calories: Int(calories))
                         presentationMode.wrappedValue.dismiss()
                     }
                 }
-                .disabled(category.isEmpty || calories.isEmpty)
+                .disabled(calories == 0)
                 .padding()
                 .background(Color.green)
                 .foregroundColor(.white)
