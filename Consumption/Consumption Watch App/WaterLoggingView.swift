@@ -10,7 +10,7 @@ import WidgetKit
 
 struct WaterLoggingView: View {
     @AppStorage("dailyWater", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var dailyWater: Double = 0.0
-    @State private var waterInput: Double = 0.25  // Default water input (250ml)
+    @State private var waterInput: Double = 0.1 
 
     var body: some View {
         VStack {

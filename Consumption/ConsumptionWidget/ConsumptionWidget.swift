@@ -63,43 +63,48 @@ struct SimpleEntry: TimelineEntry {
 }
 
 // The widget view content that will display the progress of daily calories and water intake
-struct ConsumptionWidgetEntryView : View {
+struct ConsumptionWidgetEntryView: View {
     var entry: Provider.Entry
 
-    // Calculate progress of calories and water
     var calorieProgress: Double {
         min(Double(entry.dailyCalories) / 2000.0, 1.0)
     }
 
     var waterProgress: Double {
-        min(entry.dailyWater / 2.0, 1.0) // Assuming 2L as a goal for water
+        min(entry.dailyWater / 2.0, 1.0)
     }
 
     var body: some View {
-        VStack {
-            HStack {
-                VStack {
-                    // Calorie Progress Ring
-                    ProgressView(value: calorieProgress, total: 1.0)
-                        .progressViewStyle(CircularProgressViewStyle(tint: .red))
-                        .frame(width: 50, height: 50)
-                        .overlay(Text("\(entry.dailyCalories)/2000 kcal")
-                                    .font(.caption)
-                                    .foregroundColor(.red))
+        ZStack {
+            // Outer Ring (Calories - Red)
+            Circle()
+                .trim(from: 0.0, to: CGFloat(calorieProgress))
+                .stroke(Color.red, lineWidth: 10)
+                .frame(width: 60, height: 60)
+                .rotationEffect(.degrees(-90))
 
-                    // Water Progress Ring
-                    ProgressView(value: waterProgress, total: 1.0)
-                        .progressViewStyle(CircularProgressViewStyle(tint: .blue))
-                        .frame(width: 50, height: 50)
-                        .overlay(Text("\(entry.dailyWater, specifier: "%.1f")/2.0 L")
-                                    .font(.caption)
-                                    .foregroundColor(.blue))
-                }
-                .padding()
+            // Inner Ring (Water - Blue)
+            Circle()
+                .trim(from: 0.0, to: CGFloat(waterProgress))
+                .stroke(Color.blue, lineWidth: 6)
+                .frame(width: 45, height: 45)
+                .rotationEffect(.degrees(-90))
+
+            // Center Text Overlay
+            VStack(spacing: 2) {
+                Text("\(entry.dailyCalories)/2000 kcal")
+                    .font(.caption2)
+                    .foregroundColor(.red)
+
+                Text("\(entry.dailyWater, specifier: "%.1f")/2.0 L")
+                    .font(.caption2)
+                    .foregroundColor(.blue)
             }
         }
+        .padding()
     }
 }
+
 
 // The main widget configuration
 @main

@@ -67,10 +67,10 @@ struct ContentView: View {
             .navigationTitle("Daily Tracker")
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {
-                updateProgress()  // Update progress when the view appears
+                updateProgress()
             }
-            .onChange(of: dailyCalories) { _ in updateProgress() } // Update when calories change
-            .onChange(of: dailyWater) { _ in updateProgress() } // Update when water changes
+            .onChange(of: dailyCalories) { _, _ in updateProgress() } // Updated syntax for watchOS 10
+            .onChange(of: dailyWater) { _, _ in updateProgress() } // Updated syntax for watchOS 10
         }
     }
 
