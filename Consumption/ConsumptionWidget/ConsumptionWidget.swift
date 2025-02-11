@@ -14,7 +14,7 @@ struct Provider: TimelineProvider {
 
     // Placeholder is used to show a preview of the widget in Widget Gallery
     func placeholder(in context: Context) -> SimpleEntry {
-        SimpleEntry(date: Date(), dailyCalories: 0, dailyWater: 0.0)
+        SimpleEntry(date: Date(), dailyCalories: 0, dailyWater: 0, calorieGoal: 2000, waterGoal: 2000)
     }
 
     // Snapshot generates a specific instance of widget for preview
@@ -22,27 +22,30 @@ struct Provider: TimelineProvider {
         // Retrieve real data or placeholder data for preview purposes
         let sharedDefaults = UserDefaults(suiteName: "group.usw.rms.Consumption")
         let dailyCalories = sharedDefaults?.integer(forKey: "dailyCalories") ?? 0
-        let dailyWater = sharedDefaults?.double(forKey: "dailyWater") ?? 0.0
+        let dailyWater = sharedDefaults?.integer(forKey: "dailyWater") ?? 0
+        let calorieGoal = sharedDefaults?.integer(forKey: "calorieGoal") ?? 2000
+        let waterGoal = sharedDefaults?.integer(forKey: "waterGoal") ?? 2000
 
-        let entry = SimpleEntry(date: Date(), dailyCalories: dailyCalories, dailyWater: dailyWater)
+        let entry = SimpleEntry(date: Date(), dailyCalories: dailyCalories, dailyWater: dailyWater, calorieGoal: calorieGoal, waterGoal: waterGoal)
         completion(entry)
     }
 
     // Timeline generates a series of data entries, updating at regular intervals.
     func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> Void) {
         let sharedDefaults = UserDefaults(suiteName: "group.usw.rms.Consumption")
-
         let dailyCalories = sharedDefaults?.integer(forKey: "dailyCalories") ?? 0
-        let dailyWater = sharedDefaults?.double(forKey: "dailyWater") ?? 0.0
+        let dailyWater = sharedDefaults?.integer(forKey: "dailyWater") ?? 0
+        let calorieGoal = sharedDefaults?.integer(forKey: "calorieGoal") ?? 2000
+        let waterGoal = sharedDefaults?.integer(forKey: "waterGoal") ?? 2000
 
-        print("Widget Fetching Calories: \(dailyCalories), Water: \(dailyWater)")
+        print("Widget Fetching Calories: \(dailyCalories)/\(calorieGoal), Water: \(dailyWater)/\(waterGoal)")
 
         let currentDate = Date()
         var entries: [SimpleEntry] = []
 
         for hourOffset in 0..<5 {
             let entryDate = Calendar.current.date(byAdding: .hour, value: hourOffset, to: currentDate)!
-            let entry = SimpleEntry(date: entryDate, dailyCalories: dailyCalories, dailyWater: dailyWater)
+            let entry = SimpleEntry(date: entryDate, dailyCalories: dailyCalories, dailyWater: dailyWater, calorieGoal: calorieGoal, waterGoal: waterGoal)
             entries.append(entry)
         }
 
@@ -59,70 +62,86 @@ struct Provider: TimelineProvider {
 struct SimpleEntry: TimelineEntry {
     let date: Date
     let dailyCalories: Int
-    let dailyWater: Double
+    let dailyWater: Int
+    let calorieGoal: Int
+    let waterGoal: Int
 }
 
 // The widget view content that will display the progress of daily calories and water intake
 struct ConsumptionWidgetEntryView: View {
     var entry: Provider.Entry
-
+    
     var calorieProgress: Double {
-        min(Double(entry.dailyCalories) / 2000.0, 1.0)
+        min(Double(entry.dailyCalories) / Double(entry.calorieGoal), 1.0)
     }
-
+    
     var waterProgress: Double {
-        min(entry.dailyWater / 2.0, 1.0)
+        min(Double(entry.dailyWater) / Double(entry.waterGoal), 1.0)
     }
-
+    
     var body: some View {
-        ZStack {
-            // Outer Ring (Calories - Red)
-            Circle()
-                .trim(from: 0.0, to: CGFloat(calorieProgress))
-                .stroke(Color.red, lineWidth: 10)
-                .frame(width: 60, height: 60)
-                .rotationEffect(.degrees(-90))
+        HStack {
+            // Left: The Progress Bars (Calories & Water)
+            VStack(spacing: 12) {
+                // Progress Bar for Calories
+                VStack {
+                    Text("Calories")
+                        .font(.caption)
+                        .foregroundColor(.red)
+                    
+                    ProgressView(value: calorieProgress, total: 1.0)
+                        .progressViewStyle(LinearProgressViewStyle(tint: .red))
+                        .frame(height: 10) // Adjust the height for a slim bar
+                }
+                
+                // Progress Bar for Water
+                VStack {
+                    Text("Water")
+                        .font(.caption)
+                        .foregroundColor(.blue)
+                    
+                    ProgressView(value: waterProgress, total: 1.0)
+                        .progressViewStyle(LinearProgressViewStyle(tint: .blue))
+                        .frame(height: 10) // Adjust the height for a slim bar
+                }
+            }
+            .padding(.leading)
 
-            // Inner Ring (Water - Blue)
-            Circle()
-                .trim(from: 0.0, to: CGFloat(waterProgress))
-                .stroke(Color.blue, lineWidth: 6)
-                .frame(width: 45, height: 45)
-                .rotationEffect(.degrees(-90))
-
-            // Center Text Overlay
+            // Right: The Text (Calories & Water)
             VStack(spacing: 2) {
-                Text("\(entry.dailyCalories)/2000 kcal")
-                    .font(.caption2)
+                Text("\(entry.dailyCalories)/\(entry.calorieGoal) kcal")
+                    .font(.caption)
                     .foregroundColor(.red)
 
-                Text("\(entry.dailyWater, specifier: "%.1f")/2.0 L")
-                    .font(.caption2)
+                Text("\(entry.dailyWater)/\(entry.waterGoal) mL")
+                    .font(.caption)
                     .foregroundColor(.blue)
             }
+            .padding(.leading, 10) // Add space between text and progress bars
         }
-        .padding()
     }
-}
 
 
-// The main widget configuration
-@main
-struct ConsumptionWidget: Widget {
-    let kind: String = "ConsumptionWidget"
-
-    var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: Provider()) { entry in
-            ConsumptionWidgetEntryView(entry: entry)
-                .containerBackground(.fill.tertiary, for: .widget)
+    
+    
+    // The main widget configuration
+    @main
+    struct ConsumptionWidget: Widget {
+        let kind: String = "ConsumptionWidget"
+        
+        var body: some WidgetConfiguration {
+            StaticConfiguration(kind: kind, provider: Provider()) { entry in
+                ConsumptionWidgetEntryView(entry: entry)
+                    .containerBackground(.fill.tertiary, for: .widget)
+            }
+            .configurationDisplayName("Consumption Widget")
+            .description("Track your daily calorie and water intake.")
         }
-        .configurationDisplayName("Consumption Widget")
-        .description("Track your daily calorie and water intake.")
     }
-}
-
-#Preview(as: .accessoryRectangular) {
-    ConsumptionWidget()
-} timeline: {
-    SimpleEntry(date: .now, dailyCalories: 1000, dailyWater: 1.5)
+    
+    #Preview(as: .accessoryRectangular) {
+        ConsumptionWidget()
+    } timeline: {
+        SimpleEntry(date: .now, dailyCalories: 1000, dailyWater: 1500, calorieGoal: 2000, waterGoal: 2000)
+    }
 }

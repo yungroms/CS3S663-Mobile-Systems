@@ -5,7 +5,9 @@ import UserNotifications
 struct Consumption_Watch_AppApp: App {
     // Use shared UserDefaults with the App Group
     @AppStorage("dailyCalories", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var dailyCalories: Int = 0
-    @AppStorage("dailyWater", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var dailyWater: Double = 0.0
+    @AppStorage("dailyWater", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var dailyWater: Int = 0
+    @AppStorage("calorieGoal", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var calorieGoal: Int = 2000
+    @AppStorage("waterGoal", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var waterGoal: Int = 2000
     @AppStorage("lastResetDate", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var lastResetDate: Date = Date()
 
     // Helper function to check if it's a new day
@@ -69,7 +71,7 @@ struct Consumption_Watch_AppApp: App {
         // Check if it's a new day and reset values
         if isNewDay(lastResetDate: lastResetDate) {
             dailyCalories = 0
-            dailyWater = 0.0
+            dailyWater = 0
             
             // Update the last reset date to today
             lastResetDate = Date()
@@ -78,6 +80,8 @@ struct Consumption_Watch_AppApp: App {
             let sharedDefaults = UserDefaults(suiteName: "group.usw.rms.Consumption")
             sharedDefaults?.set(dailyCalories, forKey: "dailyCalories")
             sharedDefaults?.set(dailyWater, forKey: "dailyWater")
+            sharedDefaults?.set(2000, forKey: "calorieGoal")
+            sharedDefaults?.set(2000, forKey: "waterGoal")
             sharedDefaults?.synchronize() // Ensure values are saved immediately
         }
 

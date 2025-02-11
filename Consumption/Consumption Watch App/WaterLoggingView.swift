@@ -9,14 +9,14 @@ import SwiftUI
 import WidgetKit
 
 struct WaterLoggingView: View {
-    @AppStorage("dailyWater", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var dailyWater: Double = 0.0
-    @State private var waterInput: Double = 0.1 
+    @AppStorage("dailyWater", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var dailyWater: Int = 0
+    @State private var waterInput: Int = 100
 
     var body: some View {
         VStack {
             // Stepper for water input
-            Stepper(value: $waterInput, in: 0.1...1.0, step: 0.1) {
-                Text("Water: \(waterInput, specifier: "%.1f") L")
+            Stepper(value: $waterInput, in: 100...1000, step: 100) {
+                Text("Water: \(waterInput) mL")
                     .font(.body)
             }
             .padding()
@@ -28,8 +28,6 @@ struct WaterLoggingView: View {
             }
             .padding()
         }
-        .navigationTitle("Log Water")
-        .padding()
     }
 
     private func saveWater() {
@@ -37,7 +35,7 @@ struct WaterLoggingView: View {
         sharedDefaults?.set(dailyWater, forKey: "dailyWater")
         sharedDefaults?.synchronize()  // Ensures changes persist
 
-        print("Water Saved to UserDefaults: \(sharedDefaults?.double(forKey: "dailyWater") ?? 0.0)")
+        print("Water Saved to UserDefaults: \(sharedDefaults?.double(forKey: "dailyWater") ?? 0)")
         
         WidgetCenter.shared.reloadAllTimelines()  // Forces the widget to refresh
     }

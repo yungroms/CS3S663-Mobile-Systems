@@ -40,8 +40,8 @@ struct FoodLoggingView: View {
             }
             .padding()
         }
-        .navigationTitle("Log Food")
-        .padding()
+        //.navigationTitle("Log Food")
+        //.padding()
     }
 
     private func saveCalories() {
