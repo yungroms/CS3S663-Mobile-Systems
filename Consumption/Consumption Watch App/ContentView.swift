@@ -16,7 +16,7 @@ struct ContentView: View {
     @AppStorage("waterGoal", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var waterGoal: Int = 2000
     @AppStorage("lastResetDate", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var lastResetDate: Date = Date()
 
-    // Force view to refresh when values change
+    @State private var showComparisonView = false
     @State private var calorieProgress: Double = 0.0
     @State private var waterProgress: Double = 0.0
     @State private var timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
@@ -24,79 +24,98 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             VStack {
-                // Overlapping Rings (ZStack)
-                ZStack {
-                    // Outer Ring (Calories - Red)
-                    Circle()
-                        .trim(from: 0.0, to: CGFloat(calorieProgress))
-                        .stroke(Color.red,
-                                style: StrokeStyle(lineWidth: 12, lineCap: .round, lineJoin: .round))
-                        .frame(width: 120, height: 120)
-                        .rotationEffect(.degrees(-90))
-
-                    // Inner Ring (Water - Blue) - Adjusted width & size
-                    Circle()
-                        .trim(from: 0.0, to: CGFloat(waterProgress))
-                        .stroke(Color.blue,
-                                style: StrokeStyle(lineWidth: 10, lineCap: .round, lineJoin: .round)) // Slightly thinner line
-                        .frame(width: 100, height: 100) // Increased to closely match the inner edge of red
-                        .rotationEffect(.degrees(-90))
-
-                    // Center Text Overlay
-                    VStack {
-                        Text("\(dailyCalories)/\(calorieGoal) kcal")
-                            .font(.system(size: 10, weight: .semibold, design: .rounded))
-                            .minimumScaleFactor(0.8)
-                            .foregroundColor(.red)
-                            .multilineTextAlignment(.center)
-
-                        Text("\(dailyWater)/\(waterGoal) mL")
-                            .font(.system(size: 10, weight: .semibold, design: .rounded))
-                            .minimumScaleFactor(0.8)
-                            .foregroundColor(.blue)
-                            .multilineTextAlignment(.center)
-                    }
+                if showComparisonView {
+                    ComparisonView()
+                        .transition(.move(edge: .bottom))
+                } else {
+                    mainControlView()
+                        .transition(.move(edge: .top))
                 }
-
-                .padding()
-
-                // Buttons for Logging
-                HStack {
-                    NavigationLink(destination: FoodLoggingView()) {
-                        Text("Log Food")
+            }
+            .gesture(
+                DragGesture()
+                    .onEnded { value in
+                        if value.translation.height < -50 { // Swipe up
+                            withAnimation { showComparisonView = true }
+                        } else if value.translation.height > 50 { // Swipe down
+                            withAnimation { showComparisonView = false }
+                        }
                     }
-                    .buttonStyle(BorderedButtonStyle())
-                    .controlSize(.mini)
+            )
+        }
+    }
 
-                    NavigationLink(destination: WaterLoggingView()) {
-                        Text("Log Water")
-                    }
-                    .buttonStyle(BorderedButtonStyle())
-                    .controlSize(.mini)
-                }
+    private func mainControlView() -> some View {
+        VStack {
+            // Overlapping Rings (ZStack)
+            ZStack {
+                // Outer Ring (Calories - Red)
+                Circle()
+                    .trim(from: 0.0, to: CGFloat(calorieProgress))
+                    .stroke(Color.red,
+                            style: StrokeStyle(lineWidth: 12, lineCap: .round, lineJoin: .round))
+                    .frame(width: 120, height: 120)
+                    .rotationEffect(.degrees(-90))
 
-                // Settings Link
-                NavigationLink(destination: SettingsView()) {
-                    Text("Settings")
+                // Inner Ring (Water - Blue)
+                Circle()
+                    .trim(from: 0.0, to: CGFloat(waterProgress))
+                    .stroke(Color.blue,
+                            style: StrokeStyle(lineWidth: 10, lineCap: .round, lineJoin: .round))
+                    .frame(width: 100, height: 100)
+                    .rotationEffect(.degrees(-90))
+
+                // Center Text Overlay
+                VStack {
+                    Text("\(dailyCalories)/\(calorieGoal) kcal")
+                        .font(.system(size: 10, weight: .semibold, design: .rounded))
+                        .minimumScaleFactor(0.8)
+                        .foregroundColor(.red)
+                        .multilineTextAlignment(.center)
+
+                    Text("\(dailyWater)/\(waterGoal) mL")
+                        .font(.system(size: 10, weight: .semibold, design: .rounded))
+                        .minimumScaleFactor(0.8)
+                        .foregroundColor(.blue)
+                        .multilineTextAlignment(.center)
                 }
-                    .buttonStyle(BorderedButtonStyle())
-                    .controlSize(.mini)
             }
-            //.navigationTitle("Daily Tracker")
-            //.navigationBarTitleDisplayMode(.inline)
-            .onAppear {
-                resetIfNeeded()
-                checkForMidnightReset()
-                updateProgress()
-                scheduleDailyReminders()
+            .padding()
+
+            // Buttons for Logging
+            HStack {
+                NavigationLink(destination: FoodLoggingView()) {
+                    Text("Log Food")
+                }
+                .buttonStyle(BorderedButtonStyle())
+                .controlSize(.mini)
+
+                NavigationLink(destination: WaterLoggingView()) {
+                    Text("Log Water")
+                }
+                .buttonStyle(BorderedButtonStyle())
+                .controlSize(.mini)
             }
-            .onChange(of: dailyCalories) { _, _ in updateProgress() }
-            .onChange(of: dailyWater) { _, _ in updateProgress() }
-            .onChange(of: calorieGoal) { _, _ in updateProgress() }
-            .onChange(of: calorieGoal) { _, _ in updateProgress() }
-            .onReceive(timer) { _ in
-                checkForMidnightReset()
+
+            // Settings Link
+            NavigationLink(destination: SettingsView()) {
+                Text("Settings")
             }
+            .buttonStyle(BorderedButtonStyle())
+            .controlSize(.mini)
+        }
+        .onAppear {
+            resetIfNeeded()
+            checkForMidnightReset()
+            updateProgress()
+            scheduleDailyReminders()
+        }
+        .onChange(of: dailyCalories) { _, _ in updateProgress() }
+        .onChange(of: dailyWater) { _, _ in updateProgress() }
+        .onChange(of: calorieGoal) { _, _ in updateProgress() }
+        .onChange(of: calorieGoal) { _, _ in updateProgress() }
+        .onReceive(timer) { _ in
+            checkForMidnightReset()
         }
     }
 
@@ -104,7 +123,7 @@ struct ContentView: View {
         calorieProgress = min(Double(dailyCalories) / Double(calorieGoal), 1.0)
         waterProgress = min(Double(dailyWater) / Double(waterGoal), 1.0)
     }
-    
+
     // Function to schedule reminders for meals
     func scheduleReminder(for meal: String, hour: Int, minute: Int) {
         let content = UNMutableNotificationContent()
@@ -157,24 +176,32 @@ struct ContentView: View {
             print("Daily values reset at midnight")
         }
     }
-    
+
     func resetIfNeeded() {
         let sharedDefaults = UserDefaults(suiteName: "group.usw.rms.Consumption")
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd" // Compare only the date, not time
+        let calendar = Calendar.current
+        let lastResetDate = sharedDefaults?.object(forKey: "lastResetDate") as? Date ?? Date.distantPast
+        let today = Date()
 
-        let today = formatter.string(from: Date())
-        let lastDate = sharedDefaults?.string(forKey: "lastUpdatedDate") ?? ""
+        if !calendar.isDate(lastResetDate, inSameDayAs: today) {
+            print("Midnight Reset: Saving yesterday's data and resetting daily values")
 
-        if today != lastDate {
-            print("New day detected. Resetting values.")
+            // Save yesterday's values
+            let yesterdayCalories = sharedDefaults?.integer(forKey: "dailyCalories") ?? 0
+            let yesterdayWater = sharedDefaults?.integer(forKey: "dailyWater") ?? 0
+            sharedDefaults?.set(yesterdayCalories, forKey: "yesterdayCalories")
+            sharedDefaults?.set(yesterdayWater, forKey: "yesterdayWater")
+
+            // Reset today's values
             sharedDefaults?.set(0, forKey: "dailyCalories")
             sharedDefaults?.set(0, forKey: "dailyWater")
-            sharedDefaults?.set(today, forKey: "lastUpdatedDate")
-            WidgetCenter.shared.reloadAllTimelines() // Ensure widget updates
+            sharedDefaults?.set(today, forKey: "lastResetDate")
+            sharedDefaults?.synchronize()
+
+            // Refresh the widget
+            WidgetCenter.shared.reloadAllTimelines()
         } else {
-            print("Same day detected. No reset needed.")
+            print("No reset needed: Already updated today.")
         }
     }
-
 }

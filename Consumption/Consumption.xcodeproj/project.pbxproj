@@ -75,6 +75,7 @@
 		6BB034192D5A8B590027A803 /* Exceptions for "Consumption Watch App" folder in "ConsumptionWidgetExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				ComparisonView.swift,
 				ContentView.swift,
 				FoodLoggingView.swift,
 				SettingsView.swift,

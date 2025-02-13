@@ -44,21 +44,29 @@ struct WaterLoggingView: View {
     
     func resetIfNeeded() {
         let sharedDefaults = UserDefaults(suiteName: "group.usw.rms.Consumption")
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd" // Compare only the date, not time
+        let calendar = Calendar.current
+        let lastResetDate = sharedDefaults?.object(forKey: "lastResetDate") as? Date ?? Date.distantPast
+        let today = Date()
 
-        let today = formatter.string(from: Date())
-        let lastDate = sharedDefaults?.string(forKey: "lastUpdatedDate") ?? ""
+        if !calendar.isDate(lastResetDate, inSameDayAs: today) {
+            print("Midnight Reset: Saving yesterday's data and resetting daily values")
 
-        if today != lastDate {
-            print("New day detected. Resetting values.")
+            // Save yesterday's values
+            let yesterdayCalories = sharedDefaults?.integer(forKey: "dailyCalories") ?? 0
+            let yesterdayWater = sharedDefaults?.integer(forKey: "dailyWater") ?? 0
+            sharedDefaults?.set(yesterdayCalories, forKey: "yesterdayCalories")
+            sharedDefaults?.set(yesterdayWater, forKey: "yesterdayWater")
+
+            // Reset today's values
             sharedDefaults?.set(0, forKey: "dailyCalories")
             sharedDefaults?.set(0, forKey: "dailyWater")
-            sharedDefaults?.set(today, forKey: "lastUpdatedDate")
-            WidgetCenter.shared.reloadAllTimelines() // Ensure widget updates
+            sharedDefaults?.set(today, forKey: "lastResetDate")
+            sharedDefaults?.synchronize()
+
+            // Refresh the widget
+            WidgetCenter.shared.reloadAllTimelines()
         } else {
-            print("Same day detected. No reset needed.")
+            print("No reset needed: Already updated today.")
         }
     }
-
 }
