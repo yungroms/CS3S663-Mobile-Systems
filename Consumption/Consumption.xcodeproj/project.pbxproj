@@ -77,7 +77,9 @@
 			membershipExceptions = (
 				ComparisonView.swift,
 				ContentView.swift,
+				FoodItem.swift,
 				FoodLoggingView.swift,
+				FoodLogView.swift,
 				SettingsView.swift,
 				WaterLoggingView.swift,
 			);

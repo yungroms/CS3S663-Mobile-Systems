@@ -11,6 +11,7 @@ import WidgetKit
 struct FoodLoggingView: View {
     @AppStorage("dailyCalories", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var dailyCalories: Int = 0
     @AppStorage("lastUpdatedDate", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var lastUpdatedDate: String = ""
+    @AppStorage("loggedFoods", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var loggedFoodsData: Data?
 
     @State private var selectedMeal = "Breakfast"
     @State private var calorieInput = 100  // Default calorie input
@@ -38,8 +39,8 @@ struct FoodLoggingView: View {
             // Add Entry Button
             Button("Add Entry") {
                 resetIfNeeded()
-                dailyCalories += calorieInput  // Update @AppStorage
-                saveCalories()  // Explicitly save to shared UserDefaults
+                addFoodLog(meal: selectedMeal, calories: calorieInput)  // Log the food
+                saveCalories()  // Save updated calories to UserDefaults
             }
             .padding()
         }
@@ -48,14 +49,47 @@ struct FoodLoggingView: View {
     }
 
     private func saveCalories() {
-        let sharedDefaults = UserDefaults(suiteName: "group.usw.rms.Consumption")
-        sharedDefaults?.set(dailyCalories, forKey: "dailyCalories")
-        sharedDefaults?.synchronize()  // Ensures changes persist
+            let sharedDefaults = UserDefaults(suiteName: "group.usw.rms.Consumption")
+            sharedDefaults?.set(dailyCalories, forKey: "dailyCalories")
+            sharedDefaults?.synchronize()  // Ensures changes persist
 
-        print("Calories Saved to UserDefaults: \(sharedDefaults?.integer(forKey: "dailyCalories") ?? 0)")
+            print("Calories Saved to UserDefaults: \(sharedDefaults?.integer(forKey: "dailyCalories") ?? 0)")
+            
+            WidgetCenter.shared.reloadAllTimelines()  // Forces the widget to refresh
+        }
         
-        WidgetCenter.shared.reloadAllTimelines()  // Forces the widget to refresh
-    }
+        // Function to add a food log entry
+        private func addFoodLog(meal: String, calories: Int) {
+            let newFood = FoodItem(mealType: meal, calories: calories)
+            
+            // Fetch existing foods
+            var foods = fetchLoggedFoods()
+            
+            // Add the new food log to the array
+            foods.append(newFood)
+            
+            // Save updated foods array to UserDefaults
+            saveLoggedFoods(foods)
+            
+            // Update daily calories total
+            dailyCalories += calories
+        }
+
+        // Function to fetch all logged foods from UserDefaults
+        private func fetchLoggedFoods() -> [FoodItem] {
+            guard let data = loggedFoodsData else { return [] }
+            let decoder = JSONDecoder()
+            return (try? decoder.decode([FoodItem].self, from: data)) ?? []
+        }
+
+        // Function to save logged foods array to UserDefaults
+        private func saveLoggedFoods(_ foods: [FoodItem]) {
+            let encoder = JSONEncoder()
+            if let encoded = try? encoder.encode(foods) {
+                loggedFoodsData = encoded
+            }
+        }
+
     
     func resetIfNeeded() {
         let sharedDefaults = UserDefaults(suiteName: "group.usw.rms.Consumption")

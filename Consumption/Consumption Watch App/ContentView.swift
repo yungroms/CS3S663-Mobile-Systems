@@ -1,10 +1,3 @@
-//
-//  ContentView.swift
-//  Consumption
-//
-//  Created by Morris-Stiff R O (FCES) on 10/02/2025.
-//
-
 import SwiftUI
 import UserNotifications
 import WidgetKit
@@ -16,56 +9,71 @@ struct ContentView: View {
     @AppStorage("waterGoal", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var waterGoal: Int = 2000
     @AppStorage("lastResetDate", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var lastResetDate: Date = Date()
 
-    @State private var showComparisonView = false
+    @State private var showFoodLogView = false // Track if Food Log View is visible
+    @State private var showComparisonView = false // Track if Comparison View is visible
     @State private var calorieProgress: Double = 0.0
     @State private var waterProgress: Double = 0.0
     @State private var timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
+    @State private var dragOffset = CGSize.zero // Track the drag gesture offset
 
     var body: some View {
-        NavigationView {
-            VStack {
-                if showComparisonView {
-                    ComparisonView()
-                        .transition(.move(edge: .bottom))
-                } else {
-                    mainControlView()
-                        .transition(.move(edge: .top))
-                }
-            }
-            .gesture(
-                DragGesture()
-                    .onEnded { value in
-                        if value.translation.height < -50 { // Swipe up
-                            withAnimation { showComparisonView = true }
-                        } else if value.translation.height > 50 { // Swipe down
-                            withAnimation { showComparisonView = false }
-                        }
+            NavigationView {
+                ZStack {
+                    if showComparisonView {
+                        ComparisonView()
+                            .transition(.move(edge: .bottom))
+                    } else if showFoodLogView {
+                        FoodLogView()
+                            .transition(.move(edge: .trailing)) // Appears from the left when swiping right
+                    } else {
+                        mainControlView()
+                            .transition(.move(edge: .top))
                     }
-            )
+                }
+                .gesture(
+                    DragGesture()
+                        .onChanged { value in
+                            dragOffset = value.translation
+                        }
+                        .onEnded { value in
+                            withAnimation {
+                                if showComparisonView {
+                                    if value.translation.height > 50 { // Swipe down to go back to ContentView
+                                        showComparisonView = false
+                                    }
+                                } else if showFoodLogView {
+                                    if value.translation.width < -50 { // Swipe left to go back to ContentView
+                                        showFoodLogView = false
+                                    }
+                                } else { // ContentView swipes
+                                    if value.translation.height < -50 { // Swipe up to ComparisonView
+                                        showComparisonView = true
+                                    } else if value.translation.width > 50 { // Swipe right to FoodLogView
+                                        showFoodLogView = true
+                                    }
+                                }
+                            }
+                            dragOffset = .zero // Reset offset after swipe
+                        }
+                )
+            }
         }
-    }
 
     private func mainControlView() -> some View {
         VStack {
-            // Overlapping Rings (ZStack)
             ZStack {
-                // Outer Ring (Calories - Red)
                 Circle()
                     .trim(from: 0.0, to: CGFloat(calorieProgress))
-                    .stroke(Color.red,
-                            style: StrokeStyle(lineWidth: 12, lineCap: .round, lineJoin: .round))
+                    .stroke(Color.red, style: StrokeStyle(lineWidth: 12, lineCap: .round, lineJoin: .round))
                     .frame(width: 120, height: 120)
                     .rotationEffect(.degrees(-90))
 
-                // Inner Ring (Water - Blue)
                 Circle()
                     .trim(from: 0.0, to: CGFloat(waterProgress))
-                    .stroke(Color.blue,
-                            style: StrokeStyle(lineWidth: 10, lineCap: .round, lineJoin: .round))
+                    .stroke(Color.blue, style: StrokeStyle(lineWidth: 10, lineCap: .round, lineJoin: .round))
                     .frame(width: 100, height: 100)
                     .rotationEffect(.degrees(-90))
 
-                // Center Text Overlay
                 VStack {
                     Text("\(dailyCalories)/\(calorieGoal) kcal")
                         .font(.system(size: 10, weight: .semibold, design: .rounded))
@@ -82,7 +90,6 @@ struct ContentView: View {
             }
             .padding()
 
-            // Buttons for Logging
             HStack {
                 NavigationLink(destination: FoodLoggingView()) {
                     Text("Log Food")
@@ -97,7 +104,6 @@ struct ContentView: View {
                 .controlSize(.mini)
             }
 
-            // Settings Link
             NavigationLink(destination: SettingsView()) {
                 Text("Settings")
             }
@@ -113,9 +119,7 @@ struct ContentView: View {
         .onChange(of: dailyCalories) { _, _ in updateProgress() }
         .onChange(of: dailyWater) { _, _ in updateProgress() }
         .onChange(of: calorieGoal) { _, _ in updateProgress() }
-        .onChange(of: calorieGoal) { _, _ in updateProgress() }
-        .onReceive(timer) { _ in
-            checkForMidnightReset()
+        .onReceive(timer) { _ in checkForMidnightReset()
         }
     }
 
