@@ -5,12 +5,13 @@ struct SettingsView: View {
     // Use UserDefaults with shared suite for widget compatibility
     @State private var calorieGoal: Int = UserDefaults(suiteName: "group.usw.rms.Consumption")?.integer(forKey: "calorieGoal") ?? 2000
     @State private var waterGoal: Int = UserDefaults(suiteName: "group.usw.rms.Consumption")?.integer(forKey: "waterGoal") ?? 2000
+    @AppStorage("lastUpdatedDate", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var lastUpdatedDate: String = ""
     
     var body: some View {
         VStack {
             Text("Set Daily Goals")
                 .font(.headline)
-                .padding(.top, 10)
+                //.padding(, 10)
             
             // Calorie Goal Section
             VStack {

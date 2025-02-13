@@ -10,6 +10,7 @@ import WidgetKit
 
 struct WaterLoggingView: View {
     @AppStorage("dailyWater", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var dailyWater: Int = 0
+    @AppStorage("lastUpdatedDate", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var lastUpdatedDate: String = ""
     @State private var waterInput: Int = 100
 
     var body: some View {
@@ -23,6 +24,7 @@ struct WaterLoggingView: View {
 
             // Add Entry Button
             Button("Add Entry") {
+                resetIfNeeded()
                 dailyWater += waterInput
                 saveWater()
             }
@@ -39,4 +41,24 @@ struct WaterLoggingView: View {
         
         WidgetCenter.shared.reloadAllTimelines()  // Forces the widget to refresh
     }
+    
+    func resetIfNeeded() {
+        let sharedDefaults = UserDefaults(suiteName: "group.usw.rms.Consumption")
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd" // Compare only the date, not time
+
+        let today = formatter.string(from: Date())
+        let lastDate = sharedDefaults?.string(forKey: "lastUpdatedDate") ?? ""
+
+        if today != lastDate {
+            print("New day detected. Resetting values.")
+            sharedDefaults?.set(0, forKey: "dailyCalories")
+            sharedDefaults?.set(0, forKey: "dailyWater")
+            sharedDefaults?.set(today, forKey: "lastUpdatedDate")
+            WidgetCenter.shared.reloadAllTimelines() // Ensure widget updates
+        } else {
+            print("Same day detected. No reset needed.")
+        }
+    }
+
 }

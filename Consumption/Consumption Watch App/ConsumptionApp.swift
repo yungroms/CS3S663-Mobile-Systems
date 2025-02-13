@@ -34,47 +34,18 @@ struct Consumption_Watch_AppApp: App {
             }
         }
     }
-
-    // Function to schedule reminders for meals
-    func scheduleReminder(for meal: String, hour: Int, minute: Int) {
-        let content = UNMutableNotificationContent()
-        content.title = "Time to Log \(meal)"
-        content.body = "Don't forget to log your \(meal) calories and water intake."
-        content.sound = .default
-
-        var dateComponents = DateComponents()
-        dateComponents.hour = hour
-        dateComponents.minute = minute
-        
-        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
-        
-        let request = UNNotificationRequest(identifier: "\(meal)Reminder", content: content, trigger: trigger)
-        
-        UNUserNotificationCenter.current().add(request) { error in
-            if let error = error {
-                print("Error scheduling reminder for \(meal): \(error.localizedDescription)")
-            } else {
-                print("\(meal) reminder scheduled successfully.")
-            }
-        }
-    }
-
-    // Function to schedule daily reminders for food and water logging
-    func scheduleDailyReminders() {
-        // Schedule reminders for breakfast, lunch, and dinner
-        scheduleReminder(for: "Breakfast", hour: 8, minute: 0)  // 8:00 AM
-        scheduleReminder(for: "Lunch", hour: 12, minute: 0)     // 12:00 PM
-        scheduleReminder(for: "Dinner", hour: 18, minute: 0)    // 6:00 PM
-    }
-
+    
     init() {
         // Check if it's a new day and reset values
-        if isNewDay(lastResetDate: lastResetDate) {
-            dailyCalories = 0
-            dailyWater = 0
-            
-            // Update the last reset date to today
-            lastResetDate = Date()
+        let currentDate = Date()
+            let calendar = Calendar.current
+            let lastResetDay = calendar.startOfDay(for: lastResetDate)
+            let today = calendar.startOfDay(for: currentDate)
+
+            if today != lastResetDay {
+                dailyCalories = 0
+                dailyWater = 0
+                lastResetDate = currentDate
             
             // Explicitly save updated values to UserDefaults
             let sharedDefaults = UserDefaults(suiteName: "group.usw.rms.Consumption")
@@ -82,14 +53,13 @@ struct Consumption_Watch_AppApp: App {
             sharedDefaults?.set(dailyWater, forKey: "dailyWater")
             sharedDefaults?.set(2000, forKey: "calorieGoal")
             sharedDefaults?.set(2000, forKey: "waterGoal")
+            sharedDefaults?.set(lastResetDate, forKey: "lastResetDate")
+
             sharedDefaults?.synchronize() // Ensure values are saved immediately
         }
 
         // Request notification permission
         requestNotificationPermission()
-        
-        // Schedule daily reminders for food and water logging
-        scheduleDailyReminders()
     }
     
     var body: some Scene {

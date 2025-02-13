@@ -7,16 +7,19 @@
 
 import SwiftUI
 import UserNotifications
+import WidgetKit
 
 struct ContentView: View {
     @AppStorage("dailyCalories", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var dailyCalories: Int = 0
     @AppStorage("dailyWater", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var dailyWater: Int = 0
     @AppStorage("calorieGoal", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var calorieGoal: Int = 2000
     @AppStorage("waterGoal", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var waterGoal: Int = 2000
+    @AppStorage("lastResetDate", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var lastResetDate: Date = Date()
 
     // Force view to refresh when values change
     @State private var calorieProgress: Double = 0.0
     @State private var waterProgress: Double = 0.0
+    @State private var timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 
     var body: some View {
         NavigationView {
@@ -82,6 +85,8 @@ struct ContentView: View {
             //.navigationTitle("Daily Tracker")
             //.navigationBarTitleDisplayMode(.inline)
             .onAppear {
+                resetIfNeeded()
+                checkForMidnightReset()
                 updateProgress()
                 scheduleDailyReminders()
             }
@@ -89,6 +94,9 @@ struct ContentView: View {
             .onChange(of: dailyWater) { _, _ in updateProgress() }
             .onChange(of: calorieGoal) { _, _ in updateProgress() }
             .onChange(of: calorieGoal) { _, _ in updateProgress() }
+            .onReceive(timer) { _ in
+                checkForMidnightReset()
+            }
         }
     }
 
@@ -128,4 +136,45 @@ struct ContentView: View {
         scheduleReminder(for: "Lunch", hour: 12, minute: 0)     // 12:00 PM
         scheduleReminder(for: "Dinner", hour: 18, minute: 0)    // 6:00 PM
     }
+    
+    private func checkForMidnightReset() {
+        let calendar = Calendar.current
+        let currentDate = Date()
+        let lastResetDay = calendar.startOfDay(for: lastResetDate)
+        let today = calendar.startOfDay(for: currentDate)
+
+        if today != lastResetDay {
+            dailyCalories = 0
+            dailyWater = 0
+            lastResetDate = currentDate
+
+            let sharedDefaults = UserDefaults(suiteName: "group.usw.rms.Consumption")
+            sharedDefaults?.set(dailyCalories, forKey: "dailyCalories")
+            sharedDefaults?.set(dailyWater, forKey: "dailyWater")
+            sharedDefaults?.set(lastResetDate, forKey: "lastResetDate")
+            sharedDefaults?.synchronize()
+
+            print("Daily values reset at midnight")
+        }
+    }
+    
+    func resetIfNeeded() {
+        let sharedDefaults = UserDefaults(suiteName: "group.usw.rms.Consumption")
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd" // Compare only the date, not time
+
+        let today = formatter.string(from: Date())
+        let lastDate = sharedDefaults?.string(forKey: "lastUpdatedDate") ?? ""
+
+        if today != lastDate {
+            print("New day detected. Resetting values.")
+            sharedDefaults?.set(0, forKey: "dailyCalories")
+            sharedDefaults?.set(0, forKey: "dailyWater")
+            sharedDefaults?.set(today, forKey: "lastUpdatedDate")
+            WidgetCenter.shared.reloadAllTimelines() // Ensure widget updates
+        } else {
+            print("Same day detected. No reset needed.")
+        }
+    }
+
 }

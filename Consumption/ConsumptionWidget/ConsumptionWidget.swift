@@ -8,6 +8,25 @@
 import WidgetKit
 import SwiftUI
 
+func resetIfNeeded() {
+    let sharedDefaults = UserDefaults(suiteName: "group.usw.rms.Consumption")
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyy-MM-dd" // Compare only the date, not time
+
+    let today = formatter.string(from: Date())
+    let lastDate = sharedDefaults?.string(forKey: "lastUpdatedDate") ?? ""
+
+    if today != lastDate {
+        print("New day detected. Resetting values.")
+        sharedDefaults?.set(0, forKey: "dailyCalories")
+        sharedDefaults?.set(0, forKey: "dailyWater")
+        sharedDefaults?.set(today, forKey: "lastUpdatedDate")
+        WidgetCenter.shared.reloadAllTimelines() // Ensure widget updates
+    } else {
+        print("Same day detected. No reset needed.")
+    }
+}
+
 // Provider struct: This defines how the widget gets its data and updates.
 struct Provider: TimelineProvider {
     typealias Entry = SimpleEntry
@@ -19,6 +38,8 @@ struct Provider: TimelineProvider {
 
     // Snapshot generates a specific instance of widget for preview
     func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> Void) {
+        resetIfNeeded()
+        
         // Retrieve real data or placeholder data for preview purposes
         let sharedDefaults = UserDefaults(suiteName: "group.usw.rms.Consumption")
         let dailyCalories = sharedDefaults?.integer(forKey: "dailyCalories") ?? 0
@@ -32,6 +53,8 @@ struct Provider: TimelineProvider {
 
     // Timeline generates a series of data entries, updating at regular intervals.
     func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> Void) {
+        resetIfNeeded()
+        
         let sharedDefaults = UserDefaults(suiteName: "group.usw.rms.Consumption")
         let dailyCalories = sharedDefaults?.integer(forKey: "dailyCalories") ?? 0
         let dailyWater = sharedDefaults?.integer(forKey: "dailyWater") ?? 0
@@ -120,9 +143,6 @@ struct ConsumptionWidgetEntryView: View {
             .padding(.leading, 10) // Add space between text and progress bars
         }
     }
-
-
-    
     
     // The main widget configuration
     @main
