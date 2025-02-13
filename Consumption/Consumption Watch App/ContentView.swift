@@ -166,6 +166,7 @@ struct ContentView: View {
         let lastResetDay = calendar.startOfDay(for: lastResetDate)
         let today = calendar.startOfDay(for: currentDate)
 
+        //if true { // TEST
         if today != lastResetDay {
             dailyCalories = 0
             dailyWater = 0
