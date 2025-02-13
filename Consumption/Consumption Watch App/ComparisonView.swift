@@ -44,12 +44,12 @@ struct ComparisonView: View {
                 ProgressView(value: calorieProgressYesterday, total: 1.0)
                     .progressViewStyle(LinearProgressViewStyle(tint: .red))
                     .frame(height: 10)
-                    .overlay(Text("\(yesterdayCalories) kcal").font(.caption).foregroundColor(.red), alignment: .trailing)
+                    .overlay(Text("\(yesterdayCalories) kcal").font(.caption).foregroundColor(.white), alignment: .trailing)
                 
                 ProgressView(value: waterProgressYesterday, total: 1.0)
                     .progressViewStyle(LinearProgressViewStyle(tint: .blue))
                     .frame(height: 10)
-                    .overlay(Text("\(yesterdayWater) mL").font(.caption).foregroundColor(.blue), alignment: .trailing)
+                    .overlay(Text("\(yesterdayWater) mL").font(.caption).foregroundColor(.white), alignment: .trailing)
             }
             
             // Water Comparison
@@ -60,12 +60,12 @@ struct ComparisonView: View {
                 ProgressView(value: calorieProgressToday, total: 1.0)
                     .progressViewStyle(LinearProgressViewStyle(tint: .red))
                     .frame(height: 10)
-                    .overlay(Text("\(dailyCalories) kcal").font(.caption).foregroundColor(.red), alignment: .trailing)
+                    .overlay(Text("\(dailyCalories) kcal").font(.caption).foregroundColor(.white), alignment: .trailing)
                 
                 ProgressView(value: waterProgressToday, total: 1.0)
                     .progressViewStyle(LinearProgressViewStyle(tint: .blue))
                     .frame(height: 10)
-                    .overlay(Text("\(dailyWater) mL").font(.caption).foregroundColor(.blue), alignment: .trailing)
+                    .overlay(Text("\(dailyWater) mL").font(.caption).foregroundColor(.white), alignment: .trailing)
             }
         }
         .padding()
