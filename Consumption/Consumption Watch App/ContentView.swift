@@ -8,6 +8,7 @@ struct ContentView: View {
     @AppStorage("calorieGoal", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var calorieGoal: Int = 2000
     @AppStorage("waterGoal", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var waterGoal: Int = 2000
     @AppStorage("lastResetDate", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var lastResetDate: Date = Date()
+    @AppStorage("loggedFoods", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var loggedFoodsData: Data?
 
     @State private var showFoodLogView = false // Track if Food Log View is visible
     @State private var showComparisonView = false // Track if Comparison View is visible
@@ -156,7 +157,7 @@ struct ContentView: View {
     func scheduleDailyReminders() {
         // Schedule reminders for breakfast, lunch, and dinner
         scheduleReminder(for: "Breakfast", hour: 8, minute: 0)  // 8:00 AM
-        scheduleReminder(for: "Lunch", hour: 12, minute: 0)     // 12:00 PM
+        scheduleReminder(for: "Lunch", hour: 11, minute: 34)     // 12:00 PM
         scheduleReminder(for: "Dinner", hour: 18, minute: 0)    // 6:00 PM
     }
     
@@ -171,11 +172,21 @@ struct ContentView: View {
             dailyCalories = 0
             dailyWater = 0
             lastResetDate = currentDate
+            
+            // Reset food log (properly encode an empty array)
+                    let emptyFoodLog: [FoodItem] = []
+                    let encoder = JSONEncoder()
+                    if let encodedData = try? encoder.encode(emptyFoodLog) {
+                        loggedFoodsData = encodedData
+                    } else {
+                        print("Error encoding empty food log for reset.")
+                    }
 
             let sharedDefaults = UserDefaults(suiteName: "group.usw.rms.Consumption")
             sharedDefaults?.set(dailyCalories, forKey: "dailyCalories")
             sharedDefaults?.set(dailyWater, forKey: "dailyWater")
             sharedDefaults?.set(lastResetDate, forKey: "lastResetDate")
+            sharedDefaults?.set(loggedFoodsData, forKey: "loggedFoods")
             sharedDefaults?.synchronize()
 
             print("Daily values reset at midnight")
