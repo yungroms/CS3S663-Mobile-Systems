@@ -13,8 +13,6 @@ struct WaterLoggingView: View {
     @EnvironmentObject var consumptionModel: ConsumptionModel
     @Environment(\.presentationMode) var presentationMode
 
-    @AppStorage("dailyWater", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var dailyWater: Int = 0
-    @AppStorage("lastUpdatedDate", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var lastUpdatedDate: String = ""
     @State private var waterInput: Int = 100
 
     var body: some View {

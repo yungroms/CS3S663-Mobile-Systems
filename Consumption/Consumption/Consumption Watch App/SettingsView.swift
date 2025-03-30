@@ -1,9 +1,10 @@
 import SwiftUI
 import WidgetKit
 
+
 struct SettingsView: View {
     @EnvironmentObject var consumptionModel: ConsumptionModel
-
+    
     var body: some View {
         VStack {
             Text("Set Daily Goals")
@@ -16,7 +17,6 @@ struct SettingsView: View {
                         .font(.body)
                 }
                 .padding()
-                
                 Text("Calorie Goal")
                     .font(.subheadline)
                     .foregroundColor(.gray)
@@ -30,7 +30,6 @@ struct SettingsView: View {
                     Text("\(consumptionModel.waterGoal) mL")
                         .font(.body)
                 }
-                
                 Text("Water Goal")
                     .font(.subheadline)
                     .foregroundColor(.gray)
@@ -38,7 +37,8 @@ struct SettingsView: View {
             
             // Save Button
             Button(action: {
-                print("Goals saved: Calorie Goal: \(consumptionModel.calorieGoal), Water Goal: \(consumptionModel.waterGoal)")
+                // Update the settings in Core Data.
+                consumptionModel.updateAppSettings(calorieGoal: consumptionModel.calorieGoal, waterGoal: consumptionModel.waterGoal)
                 WidgetCenter.shared.reloadAllTimelines()
             }) {
                 Text("Save Goals")

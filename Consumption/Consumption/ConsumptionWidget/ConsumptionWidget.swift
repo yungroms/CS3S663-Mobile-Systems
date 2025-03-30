@@ -56,20 +56,22 @@ struct Provider: TimelineProvider {
         completion(timeline)
     }
     
-    /// Fetch data from Core Data using the shared PersistenceController.
     private func fetchDataForWidget() -> SimpleEntry? {
         let context = PersistenceController.shared.container.viewContext
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: Date())
         let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
         
-        // Fetch FoodEntry objects for today.
+        // Fetch today's FoodEntry objects.
         let foodRequest: NSFetchRequest<FoodEntry> = FoodEntry.fetchRequest()
         foodRequest.predicate = NSPredicate(format: "date >= %@ AND date < %@", startOfDay as NSDate, endOfDay as NSDate)
         
-        // Fetch WaterEntry objects for today.
+        // Fetch today's WaterEntry objects.
         let waterRequest: NSFetchRequest<WaterEntry> = WaterEntry.fetchRequest()
         waterRequest.predicate = NSPredicate(format: "date >= %@ AND date < %@", startOfDay as NSDate, endOfDay as NSDate)
+        
+        // Fetch AppSettings for goal values.
+        let settingsRequest: NSFetchRequest<ConsumptionSettings> = ConsumptionSettings.fetchRequest()
         
         do {
             let foodEntries = try context.fetch(foodRequest)
@@ -78,17 +80,30 @@ struct Provider: TimelineProvider {
             let waterEntries = try context.fetch(waterRequest)
             let totalWater = waterEntries.reduce(0) { $0 + Int($1.amount) }
             
-            return SimpleEntry(date: Date(), dailyCalories: totalCalories, dailyWater: totalWater, calorieGoal: 2000, waterGoal: 2000)
+            let settingsResults = try context.fetch(settingsRequest)
+            let settings: ConsumptionSettings
+            if let existing = settingsResults.first {
+                settings = existing
+            } else {
+                // Use defaults if no settings are found.
+                settings = ConsumptionSettings(context: context)
+                settings.calorieGoal = 2000
+                settings.waterGoal = 2000
+            }
+            
+            return SimpleEntry(date: Date(),
+                               dailyCalories: totalCalories,
+                               dailyWater: totalWater,
+                               calorieGoal: Int(settings.calorieGoal),
+                               waterGoal: Int(settings.waterGoal))
         } catch {
             print("Error fetching widget data: \(error.localizedDescription)")
             return nil
         }
     }
 
-
 }
 
-// MARK: - Widget View
 struct ConsumptionWidgetEntryView: View {
     var entry: Provider.Entry
     
@@ -139,7 +154,6 @@ struct ConsumptionWidgetEntryView: View {
     }
 }
 
-// MARK: - Widget Configuration
 @main
 struct ConsumptionWidget: Widget {
     let kind: String = "ConsumptionWidget"
@@ -152,10 +166,4 @@ struct ConsumptionWidget: Widget {
         .configurationDisplayName("Consumption Widget")
         .description("Track your daily calorie and water intake.")
     }
-}
-
-#Preview(as: .accessoryRectangular) {
-    ConsumptionWidget()
-} timeline: {
-    SimpleEntry(date: .now, dailyCalories: 1000, dailyWater: 1500, calorieGoal: 2000, waterGoal: 2000)
 }

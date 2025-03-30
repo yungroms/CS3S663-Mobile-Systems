@@ -14,6 +14,10 @@ class ConsumptionModel: ObservableObject {
     @Published var waterGoal: Int = 2000
     @Published var foodLogs: [FoodItem] = []
     
+    init() {
+        loadConsumptionSettings()
+    }
+    
     /// Resets daily values if a new day has begun.
     func resetDailyIfNeeded() {
         let calendar = Calendar.current
@@ -144,5 +148,50 @@ class ConsumptionModel: ObservableObject {
             print("Error recalculating daily totals: \(error.localizedDescription)")
         }
     }
-
+    
+    func updateAppSettings(calorieGoal: Int, waterGoal: Int) {
+        let context = PersistenceController.shared.container.viewContext
+        // Try to fetch an existing AppSettings record.
+        let request: NSFetchRequest<ConsumptionSettings> = ConsumptionSettings.fetchRequest()
+        do {
+            let results = try context.fetch(request)
+            let settings: ConsumptionSettings
+            if let existing = results.first {
+                settings = existing
+            } else {
+                settings = ConsumptionSettings(context: context)
+                settings.id = UUID() // if you have an id attribute
+            }
+            settings.calorieGoal = Int16(calorieGoal)
+            settings.waterGoal = Int16(waterGoal)
+            try context.save()
+            print("App settings updated.")
+        } catch {
+            print("Error updating app settings: \(error.localizedDescription)")
+        }
+    }
+    
+    func fetchAppSettings() -> (calorieGoal: Int, waterGoal: Int) {
+        let context = PersistenceController.shared.container.viewContext
+        let request: NSFetchRequest<ConsumptionSettings> = ConsumptionSettings.fetchRequest()
+        do {
+            let results = try context.fetch(request)
+            if let settings = results.first {
+                return (calorieGoal: Int(settings.calorieGoal), waterGoal: Int(settings.waterGoal))
+            }
+        } catch {
+            print("Error fetching app settings: \(error.localizedDescription)")
+        }
+        // Return default values if not found.
+        return (calorieGoal: 2000, waterGoal: 2000)
+    }
+    
+    func loadConsumptionSettings() {
+        let settings = fetchAppSettings()
+        DispatchQueue.main.async {
+            self.calorieGoal = settings.calorieGoal
+            self.waterGoal = settings.waterGoal
+        }
+        print("Loaded settings: calorieGoal = \(settings.calorieGoal), waterGoal = \(settings.waterGoal)")
+    }
 }
