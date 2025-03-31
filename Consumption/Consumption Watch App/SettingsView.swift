@@ -1,54 +1,44 @@
 import SwiftUI
 import WidgetKit
 
+
 struct SettingsView: View {
-    // Use UserDefaults with shared suite for widget compatibility
-    @State private var calorieGoal: Int = UserDefaults(suiteName: "group.usw.rms.Consumption")?.integer(forKey: "calorieGoal") ?? 2000
-    @State private var waterGoal: Int = UserDefaults(suiteName: "group.usw.rms.Consumption")?.integer(forKey: "waterGoal") ?? 2000
-    @AppStorage("lastUpdatedDate", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var lastUpdatedDate: String = ""
+    @EnvironmentObject var consumptionModel: ConsumptionModel
     
     var body: some View {
         VStack {
             Text("Set Daily Goals")
                 .font(.headline)
-                //.padding(, 10)
             
             // Calorie Goal Section
             VStack {
-                Stepper(value: $calorieGoal, in: 1500...4000, step: 100) {
-                    Text("\(calorieGoal) kcal")
-                        .font(.body) // Larger text for the value
+                Stepper(value: $consumptionModel.calorieGoal, in: 1500...4000, step: 100) {
+                    Text("\(consumptionModel.calorieGoal) kcal")
+                        .font(.body)
                 }
                 .padding()
-                
                 Text("Calorie Goal")
-                    .font(.subheadline)  // Smaller label text
-                    .foregroundColor(.gray)  // To make the label less dominant
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
             }
             
-            Divider()  // Separator between sections
+            Divider()
             
             // Water Goal Section
             VStack {
-                Stepper(value: $waterGoal, in: 1000...4000, step: 250) {
-                    Text("\(waterGoal) mL")
-                        .font(.body)  // Larger text for the value
+                Stepper(value: $consumptionModel.waterGoal, in: 1000...4000, step: 250) {
+                    Text("\(consumptionModel.waterGoal) mL")
+                        .font(.body)
                 }
-                //.padding()
-                
                 Text("Water Goal")
-                    .font(.subheadline)  // Smaller label text
-                    .foregroundColor(.gray)  // To make the label less dominant
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
             }
             
-            // Save the values to the shared UserDefaults
+            // Save Button
             Button(action: {
-                let sharedDefaults = UserDefaults(suiteName: "group.usw.rms.Consumption")
-                sharedDefaults?.set(calorieGoal, forKey: "calorieGoal")
-                sharedDefaults?.set(waterGoal, forKey: "waterGoal")
-                sharedDefaults?.synchronize() // Ensure values are saved immediately
-                print("Goals saved: Calorie Goal: \(calorieGoal), Water Goal: \(waterGoal)")
-                
+                // Update the settings in Core Data.
+                consumptionModel.updateAppSettings(calorieGoal: consumptionModel.calorieGoal, waterGoal: consumptionModel.waterGoal)
                 WidgetCenter.shared.reloadAllTimelines()
             }) {
                 Text("Save Goals")
@@ -56,7 +46,6 @@ struct SettingsView: View {
             }
             .buttonStyle(BorderedButtonStyle())
             .controlSize(.mini)
-            //.padding(10)
         }
     }
 }

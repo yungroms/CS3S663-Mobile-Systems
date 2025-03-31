@@ -1,34 +1,37 @@
-//
-//  FoodLogView.swift
-//  Consumption
-//
-//  Created by Morris-Stiff R O (FCES) on 13/02/2025.
-//
-
 import SwiftUI
+import CoreData
 
 struct FoodLogView: View {
-    @AppStorage("loggedFoods", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var loggedFoodsData: Data?
     
-    var loggedFoods: [FoodItem] {
-        // Decode stored food items from UserDefaults if available
-        guard let data = loggedFoodsData else { return [] }
-        let decoder = JSONDecoder()
-        return (try? decoder.decode([FoodItem].self, from: data)) ?? []
-    }
+    @EnvironmentObject var consumptionModel: ConsumptionModel
+    
+    // Use @FetchRequest to retrieve FoodEntry objects from CoreData.
+    @FetchRequest(
+        sortDescriptors: [NSSortDescriptor(keyPath: \FoodEntry.date, ascending: false)],
+        predicate: {
+             let calendar = Calendar.current
+             let startOfDay = calendar.startOfDay(for: Date())
+             let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
+             return NSPredicate(format: "date >= %@ AND date < %@", startOfDay as NSDate, endOfDay as NSDate)
+        }(),
+        animation: .default
+    )
+    private var foodEntries: FetchedResults<FoodEntry>
 
+    
     var body: some View {
         VStack {
             Text("Meals Logged Today:")
                 .font(.body)
                 .padding()
-
+            
             List {
-                ForEach(loggedFoods, id: \.id) { food in
+                // Use objectID as the identifier instead of self.
+                ForEach(foodEntries, id: \.objectID) { entry in
                     HStack {
-                        Text(food.mealType)
+                        Text(entry.mealType ?? "Unknown")
                         Spacer()
-                        Text("\(food.calories) kcal")
+                        Text("\(entry.calories) kcal")
                             .foregroundColor(.gray)
                     }
                 }

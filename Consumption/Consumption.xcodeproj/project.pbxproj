@@ -11,6 +11,10 @@
 		6BB034042D5A7D580027A803 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6BB034032D5A7D580027A803 /* WidgetKit.framework */; };
 		6BB034062D5A7D580027A803 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6BB034052D5A7D580027A803 /* SwiftUI.framework */; };
 		6BB034112D5A7D5A0027A803 /* ConsumptionWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 6BB034012D5A7D580027A803 /* ConsumptionWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		6BC4003F2D98295F009BC69B /* Consumption.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 6BC4003D2D98295F009BC69B /* Consumption.xcdatamodeld */; };
+		6BC400402D98295F009BC69B /* Consumption.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 6BC4003D2D98295F009BC69B /* Consumption.xcdatamodeld */; };
+		6BC400422D985929009BC69B /* PersistanceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BC400412D985929009BC69B /* PersistanceController.swift */; };
+		6BC400432D985929009BC69B /* PersistanceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BC400412D985929009BC69B /* PersistanceController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -62,6 +66,8 @@
 		6BB034032D5A7D580027A803 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		6BB034052D5A7D580027A803 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		6BB034172D5A85780027A803 /* ConsumptionWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ConsumptionWidgetExtension.entitlements; sourceTree = "<group>"; };
+		6BC4003E2D98295F009BC69B /* Consumption.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Consumption.xcdatamodel; sourceTree = "<group>"; };
+		6BC400412D985929009BC69B /* PersistanceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistanceController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -76,6 +82,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				ComparisonView.swift,
+				ConsumptionModel.swift,
 				ContentView.swift,
 				FoodItem.swift,
 				FoodLoggingView.swift,
@@ -137,6 +144,8 @@
 		6BB033CC2D5A55470027A803 = {
 			isa = PBXGroup;
 			children = (
+				6BC400412D985929009BC69B /* PersistanceController.swift */,
+				6BC4003D2D98295F009BC69B /* Consumption.xcdatamodeld */,
 				6BB034172D5A85780027A803 /* ConsumptionWidgetExtension.entitlements */,
 				6BB033DD2D5A55480027A803 /* Consumption Watch App */,
 				6BB034072D5A7D580027A803 /* ConsumptionWidget */,
@@ -303,6 +312,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6BC4003F2D98295F009BC69B /* Consumption.xcdatamodeld in Sources */,
+				6BC400422D985929009BC69B /* PersistanceController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -310,6 +321,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6BC400402D98295F009BC69B /* Consumption.xcdatamodeld in Sources */,
+				6BC400432D985929009BC69B /* PersistanceController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -638,6 +651,19 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		6BC4003D2D98295F009BC69B /* Consumption.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				6BC4003E2D98295F009BC69B /* Consumption.xcdatamodel */,
+			);
+			currentVersion = 6BC4003E2D98295F009BC69B /* Consumption.xcdatamodel */;
+			path = Consumption.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = 6BB033CD2D5A55470027A803 /* Project object */;
 }

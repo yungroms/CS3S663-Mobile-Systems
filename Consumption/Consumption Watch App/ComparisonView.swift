@@ -8,27 +8,28 @@
 import SwiftUI
 
 struct ComparisonView: View {
-    @AppStorage("dailyCalories", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var dailyCalories: Int = 0
-    @AppStorage("dailyWater", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var dailyWater: Int = 0
-    @AppStorage("yesterdayCalories", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var yesterdayCalories: Int = 0
-    @AppStorage("yesterdayWater", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var yesterdayWater: Int = 0
-    @AppStorage("calorieGoal", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var calorieGoal: Int = 2000
-    @AppStorage("waterGoal", store: UserDefaults(suiteName: "group.usw.rms.Consumption")) private var waterGoal: Int = 2000
+    
+    @EnvironmentObject var consumptionModel: ConsumptionModel
+
     
     var calorieProgressToday: Double {
-        min(Double(dailyCalories) / Double(calorieGoal), 1.0)
-    }
-    
-    var calorieProgressYesterday: Double {
-        min(Double(yesterdayCalories) / Double(calorieGoal), 1.0)
+        min(Double(consumptionModel.dailyCalories) / Double(consumptionModel.calorieGoal), 1.0)
     }
     
     var waterProgressToday: Double {
-        min(Double(dailyWater) / Double(waterGoal), 1.0)
+        min(Double(consumptionModel.dailyWater) / Double(consumptionModel.waterGoal), 1.0)
     }
     
+    var calorieProgressYesterday: Double {
+        min(Double(yesterdayTotals.calories) / Double(consumptionModel.calorieGoal), 1.0)
+    }
+
     var waterProgressYesterday: Double {
-        min(Double(yesterdayWater) / Double(waterGoal), 1.0)
+        min(Double(yesterdayTotals.water) / Double(consumptionModel.waterGoal), 1.0)
+    }
+
+    var yesterdayTotals: (calories: Int, water: Int) {
+        consumptionModel.getYesterdayTotals()
     }
     
     var body: some View {
@@ -44,12 +45,12 @@ struct ComparisonView: View {
                 ProgressView(value: calorieProgressYesterday, total: 1.0)
                     .progressViewStyle(LinearProgressViewStyle(tint: .red))
                     .frame(height: 10)
-                    .overlay(Text("\(yesterdayCalories) kcal").font(.caption).foregroundColor(.white), alignment: .trailing)
+                    .overlay(Text("\(consumptionModel.yesterdayCalories) kcal").font(.caption).foregroundColor(.white), alignment: .trailing)
                 
                 ProgressView(value: waterProgressYesterday, total: 1.0)
                     .progressViewStyle(LinearProgressViewStyle(tint: .blue))
                     .frame(height: 10)
-                    .overlay(Text("\(yesterdayWater) mL").font(.caption).foregroundColor(.white), alignment: .trailing)
+                    .overlay(Text("\(consumptionModel.yesterdayWater) mL").font(.caption).foregroundColor(.white), alignment: .trailing)
             }
             
             // Water Comparison
@@ -60,12 +61,12 @@ struct ComparisonView: View {
                 ProgressView(value: calorieProgressToday, total: 1.0)
                     .progressViewStyle(LinearProgressViewStyle(tint: .red))
                     .frame(height: 10)
-                    .overlay(Text("\(dailyCalories) kcal").font(.caption).foregroundColor(.white), alignment: .trailing)
+                    .overlay(Text("\(consumptionModel.dailyCalories) kcal").font(.caption).foregroundColor(.white), alignment: .trailing)
                 
                 ProgressView(value: waterProgressToday, total: 1.0)
                     .progressViewStyle(LinearProgressViewStyle(tint: .blue))
                     .frame(height: 10)
-                    .overlay(Text("\(dailyWater) mL").font(.caption).foregroundColor(.white), alignment: .trailing)
+                    .overlay(Text("\(consumptionModel.dailyWater) mL").font(.caption).foregroundColor(.white), alignment: .trailing)
             }
         }
         .padding()
