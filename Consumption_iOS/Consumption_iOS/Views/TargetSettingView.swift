@@ -6,37 +6,29 @@
 //
 
 import SwiftUI
+import WidgetKit  // Added import for WidgetKit
 
 struct TargetSettingView: View {
     @EnvironmentObject var viewModel: TrackerViewModel
-    @State private var calorieTarget: String = ""
-    @State private var waterTarget: String = ""
-    @State private var stepTarget: String = ""
+    
+    @State private var calorieTarget: Int = 2000
+    @State private var waterTarget: Int = 2000
     
     var body: some View {
-        NavigationView {
-            Form {
-                Section(header: Text("Set Your Daily Targets")) {
-                    TextField("Calorie Target", text: $calorieTarget)
-                        .keyboardType(.numberPad)
-                    TextField("Water Target (liters)", text: $waterTarget)
-                        .keyboardType(.decimalPad)
-                    TextField("Step Target", text: $stepTarget)
-                        .keyboardType(.numberPad)
-                }
-                Button("Save Targets") {
-                    if let cal = Int(calorieTarget),
-                       let water = Double(waterTarget),
-                       let steps = Int(stepTarget) {
-                        viewModel.updateTarget(calorieTarget: cal, waterTarget: water, stepTarget: steps)
-                        // Optionally, clear fields after saving.
-                        calorieTarget = ""
-                        waterTarget = ""
-                        stepTarget = ""
-                    }
-                }
+        Form {
+            Section(header: Text("Calorie Goal")) {
+                Stepper("\(calorieTarget) kcal", value: $calorieTarget, in: 1500...4000, step: 100)
             }
-            .navigationTitle("Targets")
+            
+            Section(header: Text("Water Goal")) {
+                Stepper("\(Int(waterTarget)) mL", value: $waterTarget, in: 1000...4000, step: 250)
+            }
+            
+            Button("Save Goals") {
+                viewModel.updateTarget(calorieTarget: calorieTarget, waterTarget: waterTarget, stepTarget: 0) // adjust for steps if available
+                WidgetCenter.shared.reloadAllTimelines()  // Now available with WidgetKit imported
+            }
+            .buttonStyle(BorderedButtonStyle())
         }
     }
 }

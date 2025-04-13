@@ -13,10 +13,13 @@ struct HistoryView: View {
     var body: some View {
         NavigationView {
             List {
-                Section(header: Text("Food History")) {
+                Section(header: Text("Calorie History")) {
                     ForEach(viewModel.foodEntries, id: \.id) { entry in
                         VStack(alignment: .leading) {
-                            Text("\(entry.category) - \(entry.calories) calories")
+                            Text(entry.category)
+                                .font(.headline)
+                            Text("\(entry.calories) kcal")
+                                .font(.subheadline)
                             Text("\(entry.date, formatter: dateFormatter)")
                                 .font(.caption)
                                 .foregroundColor(.gray)

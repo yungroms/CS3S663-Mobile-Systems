@@ -28,7 +28,7 @@ final class TrackerViewModel: ObservableObject {
         save()
     }
     
-    func addWaterEntry(amount: Double) {
+    func addWaterEntry(amount: Int) {
         let newEntry = WaterEntry(amount: amount)
         context.insert(newEntry)
         waterEntries.append(newEntry)
@@ -42,7 +42,7 @@ final class TrackerViewModel: ObservableObject {
         save()
     }
     
-    func updateTarget(calorieTarget: Int, waterTarget: Double, stepTarget: Int) {
+    func updateTarget(calorieTarget: Int, waterTarget: Int, stepTarget: Int) {
         let newTarget = Target(calorieTarget: calorieTarget, waterTarget: waterTarget, stepTarget: stepTarget)
         context.insert(newTarget)
         currentTarget = newTarget

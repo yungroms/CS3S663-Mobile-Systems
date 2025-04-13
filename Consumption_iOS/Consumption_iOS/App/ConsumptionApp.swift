@@ -13,15 +13,13 @@ import UserNotifications
 struct FoodTrackerApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentViewWrapper()  // Our new wrapper view handles context injection.
+            // Use the wrapper to inject the TrackerViewModel with the model context.
+            ContentViewWrapper()
                 .onAppear {
-                    // Request notification permissions when the app starts.
                     NotificationManager.shared.requestAuthorization()
                     NotificationManager.shared.scheduleDailyReminder()
                 }
         }
-        // Attach a model container for your data models.
         .modelContainer(for: [FoodEntry.self, WaterEntry.self, StepCountEntry.self, Target.self])
     }
 }
-

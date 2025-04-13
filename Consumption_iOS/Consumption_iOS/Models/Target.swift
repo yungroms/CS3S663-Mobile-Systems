@@ -12,11 +12,11 @@ import Foundation
 class Target {
     var id: UUID = UUID()
     var calorieTarget: Int
-    var waterTarget: Double
+    var waterTarget: Int
     var stepTarget: Int
     var date: Date
 
-    init(calorieTarget: Int, waterTarget: Double, stepTarget: Int, date: Date = Date()) {
+    init(calorieTarget: Int, waterTarget: Int, stepTarget: Int, date: Date = Date()) {
         self.calorieTarget = calorieTarget
         self.waterTarget = waterTarget
         self.stepTarget = stepTarget

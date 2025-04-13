@@ -11,10 +11,10 @@ import Foundation
 @Model
 class WaterEntry {
     var id: UUID = UUID()
-    var amount: Double  // e.g., in liters
+    var amount: Int
     var date: Date
 
-    init(amount: Double, date: Date = Date()) {
+    init(amount: Int, date: Date = Date()) {
         self.amount = amount
         self.date = date
     }

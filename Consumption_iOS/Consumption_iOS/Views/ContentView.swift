@@ -9,23 +9,35 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
-    // Retrieve the TrackerViewModel that was injected by our wrapper.
-    @EnvironmentObject var viewModel: TrackerViewModel
-
+    @EnvironmentObject var viewModel: TrackerViewModel  // Injected from the wrapper
+    
     var body: some View {
         TabView {
             DashboardView()
                 .tabItem {
                     Label("Dashboard", systemImage: "house")
                 }
-            EntryView()
+            
+            FoodEntryView()
                 .tabItem {
-                    Label("Log Entry", systemImage: "plus.circle")
+                    Label("Food", systemImage: "fork.knife")
                 }
+            
+            WaterEntryView()
+                .tabItem {
+                    Label("Water", systemImage: "drop.fill")
+                }
+            
+            StepEntryView()
+                .tabItem {
+                    Label("Steps", systemImage: "figure.walk")
+                }
+            
             HistoryView()
                 .tabItem {
                     Label("History", systemImage: "clock")
                 }
+            
             TargetSettingView()
                 .tabItem {
                     Label("Targets", systemImage: "flag")
