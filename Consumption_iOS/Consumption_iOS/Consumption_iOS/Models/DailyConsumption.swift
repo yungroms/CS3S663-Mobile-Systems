@@ -6,11 +6,33 @@
 //
 
 import Foundation
+import SwiftData
 
-struct DailyConsumption: Identifiable {
-    let id = UUID()
-    let date: Date
-    let totalCalories: Int
-    let totalWater: Int
-    let totalSteps: Int
+@Model
+class DailyConsumption {
+    var id: UUID
+    @Attribute(.unique) var date: Date
+    var totalCalories: Int
+    var totalWater: Int
+    var totalSteps: Int
+    
+    init() {
+        self.id = UUID()
+        self.date = Calendar.current.startOfDay(for: Date())
+        self.totalCalories = 0
+        self.totalWater = 0
+        self.totalSteps = 0
+    }
+}
+
+extension DailyConsumption {
+    static func todayPredicate() -> Predicate<DailyConsumption> {
+        let calendar = Calendar.current
+        let startOfToday = calendar.startOfDay(for: Date())
+        let startOfTomorrow = calendar.date(byAdding: .day, value: 1, to: startOfToday)!
+
+        return #Predicate<DailyConsumption> { data in
+            data.date >= startOfToday && data.date < startOfTomorrow
+        }
+    }
 }

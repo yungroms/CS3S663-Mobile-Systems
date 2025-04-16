@@ -13,14 +13,18 @@ struct DailyCaloriesChartView: View {
 
     var body: some View {
         Chart {
-            ForEach(dailyData) { consumption in
-                LineMark(
+            ForEach(dailyData.sorted(by: { $0.date < $1.date })) { consumption in
+                BarMark(
                     x: .value("Date", consumption.date, unit: .day),
                     y: .value("Calories", consumption.totalCalories)
                 )
-                .interpolationMethod(.catmullRom)
-                .foregroundStyle(.red)
-                .symbol(Circle())
+                .foregroundStyle(
+                    LinearGradient(
+                        gradient: Gradient(colors: [.red, .red.opacity(0.6)]),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
             }
         }
         .chartYAxis {
@@ -28,20 +32,5 @@ struct DailyCaloriesChartView: View {
         }
         .padding()
         .navigationTitle("Weekly Calories")
-    }
-}
-
-struct DailyCaloriesChartView_Previews: PreviewProvider {
-    static var previews: some View {
-        // Sample data for preview
-        let sampleData = [
-            DailyConsumption(date: Calendar.current.date(byAdding: .day, value: -3, to: Date())!, totalCalories: 1800, totalWater: 1500, totalSteps: 9000),
-            DailyConsumption(date: Calendar.current.date(byAdding: .day, value: -2, to: Date())!, totalCalories: 2000, totalWater: 1600, totalSteps: 11000),
-            DailyConsumption(date: Calendar.current.date(byAdding: .day, value: -1, to: Date())!, totalCalories: 2200, totalWater: 1400, totalSteps: 9500),
-            DailyConsumption(date: Date(), totalCalories: 2100, totalWater: 1700, totalSteps: 12000)
-        ]
-        NavigationView {
-            DailyCaloriesChartView(dailyData: sampleData)
-        }
     }
 }

@@ -14,8 +14,20 @@ class WaterEntry {
     var amount: Int
     var date: Date
 
-    init(amount: Int, date: Date = Date()) {
-        self.amount = amount
-        self.date = date
+    init() {
+        self.amount = 100
+        self.date = Calendar.current.startOfDay(for: Date())
+    }
+}
+
+extension WaterEntry {
+    static func todayPredicate() -> Predicate<WaterEntry> {
+        let calendar = Calendar.current
+        let startOfToday = calendar.startOfDay(for: Date())
+        let startOfTomorrow = calendar.date(byAdding: .day, value: 1, to: startOfToday)!
+
+        return #Predicate<WaterEntry> { data in
+            data.date >= startOfToday && data.date < startOfTomorrow
+        }
     }
 }

@@ -11,6 +11,22 @@ import UserNotifications
 
 @main
 struct FoodTrackerApp: App {
+    
+    let consumptionContainer: ModelContainer
+    
+    init() {
+        let schema = Schema([FoodEntry.self, WaterEntry.self, StepCountEntry.self, Target.self, DailyConsumption.self])
+        let config = ModelConfiguration(schema: schema, url: URL.applicationSupportDirectory.appending(path: "ConsumptionApp.db"))
+        
+        do {
+            consumptionContainer = try ModelContainer(for: schema, configurations: config)
+
+               } catch {
+                   fatalError("Could not configure container.")
+               }
+        print(URL.applicationSupportDirectory.path(percentEncoded: false))
+    }
+    
     var body: some Scene {
         WindowGroup {
             ContentViewWrapper()
@@ -19,6 +35,6 @@ struct FoodTrackerApp: App {
                     NotificationManager.shared.scheduleDailyReminder()
                 }
         }
-        .modelContainer(for: [FoodEntry.self, WaterEntry.self, StepCountEntry.self, Target.self])
+        .modelContainer(consumptionContainer)
     }
 }

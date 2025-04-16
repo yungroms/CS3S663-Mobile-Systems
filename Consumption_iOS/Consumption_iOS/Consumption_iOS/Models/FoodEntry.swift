@@ -16,10 +16,22 @@ class FoodEntry {
     var calories: Int
     var date: Date
 
-    init(category: String, mealName: String, calories: Int, date: Date = Date()) {
-        self.category = category
-        self.mealName = mealName
-        self.calories = calories
-        self.date = date
+    init() {
+        self.category = "Breakfast"
+        self.mealName = "Bacon & Eggs"
+        self.calories = 450
+        self.date = Calendar.current.startOfDay(for: Date())
+    }
+}
+
+extension FoodEntry {
+    static func todayPredicate() -> Predicate<FoodEntry> {
+        let calendar = Calendar.current
+        let startOfToday = calendar.startOfDay(for: Date())
+        let startOfTomorrow = calendar.date(byAdding: .day, value: 1, to: startOfToday)!
+
+        return #Predicate<FoodEntry> { data in
+            data.date >= startOfToday && data.date < startOfTomorrow
+        }
     }
 }
