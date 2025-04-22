@@ -13,13 +13,11 @@ class HealthKitManager {
     
     let healthStore = HKHealthStore()
 
-    // 1) Request authorization
     func requestAuthorization(completion: @escaping (Bool, Error?) -> Void) {
         guard HKHealthStore.isHealthDataAvailable() else {
             completion(false, nil)
             return
         }
-        // We want stepCount read-access
         let stepType = HKObjectType.quantityType(forIdentifier: .stepCount)!
         let typesToRead: Set = [stepType]
         
@@ -28,7 +26,6 @@ class HealthKitManager {
         }
     }
 
-    // 2) Fetch the user’s steps for today
     func fetchTodaySteps(completion: @escaping (Double?, Error?) -> Void) {
         let stepType = HKObjectType.quantityType(forIdentifier: .stepCount)!
         let startOfDay = Calendar.current.startOfDay(for: Date())
@@ -39,7 +36,6 @@ class HealthKitManager {
             options: .strictStartDate
         )
         
-        // We want cumulative sum of steps for the day
         let query = HKStatisticsQuery(
             quantityType: stepType,
             quantitySamplePredicate: predicate,

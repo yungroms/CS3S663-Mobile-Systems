@@ -11,7 +11,6 @@ import SwiftData
 @MainActor
 struct DataSeeder {
     static func seedHistoryData(in context: ModelContext) {
-        // Avoid duplicate seeding
         let fetchRequest = FetchDescriptor<DailyConsumption>()
         if let results = try? context.fetch(fetchRequest), results.count >= 30 {
             print("Historical data already seeded.")
@@ -28,7 +27,6 @@ struct DataSeeder {
             let waterML = Int.random(in: 1500...2500)
             let steps = Int.random(in: 3000...12000)
 
-            // Insert DailyConsumption entry
             let entry = DailyConsumption()
             entry.date = day
             entry.totalCalories = calories
@@ -36,7 +34,6 @@ struct DataSeeder {
             entry.totalSteps = steps
             context.insert(entry)
 
-            // Insert meal entries for the same day
             for type in mealTypes {
                 let mealCalories: Int
                 switch type {
@@ -58,9 +55,9 @@ struct DataSeeder {
 
         do {
             try context.save()
-            print("✅ Historical data (with meal history) seeded.")
+            print("Historical data (with meal history) seeded.")
         } catch {
-            print("❌ Error seeding historical data: \(error)")
+            print("Error seeding historical data: \(error)")
         }
     }
 }

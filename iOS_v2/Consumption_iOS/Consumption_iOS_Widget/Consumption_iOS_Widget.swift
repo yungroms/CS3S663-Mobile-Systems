@@ -7,82 +7,111 @@
 
 import WidgetKit
 import SwiftUI
+import SwiftData
 
-struct Provider: AppIntentTimelineProvider {
-    func placeholder(in context: Context) -> SimpleEntry {
-        SimpleEntry(date: Date(), configuration: ConfigurationAppIntent())
+struct ConsumptionEntry: TimelineEntry {
+    let date: Date
+    let caloriesProgress: Double
+    let waterProgress: Double
+    let stepsProgress: Double
+}
+
+struct Provider: TimelineProvider {
+    func placeholder(in context: Context) -> ConsumptionEntry {
+        .init(date: Date(), caloriesProgress: 0.5, waterProgress: 0.5, stepsProgress: 0.5)
     }
 
-    func snapshot(for configuration: ConfigurationAppIntent, in context: Context) async -> SimpleEntry {
-        SimpleEntry(date: Date(), configuration: configuration)
+    func getSnapshot(in context: Context, completion: @escaping (ConsumptionEntry) -> Void) {
+        completion(placeholder(in: context))
     }
-    
-    func timeline(for configuration: ConfigurationAppIntent, in context: Context) async -> Timeline<SimpleEntry> {
-        var entries: [SimpleEntry] = []
 
-        // Generate a timeline consisting of five entries an hour apart, starting from the current date.
-        let currentDate = Date()
-        for hourOffset in 0 ..< 5 {
-            let entryDate = Calendar.current.date(byAdding: .hour, value: hourOffset, to: currentDate)!
-            let entry = SimpleEntry(date: entryDate, configuration: configuration)
-            entries.append(entry)
+    func getTimeline(in context: Context, completion: @escaping (Timeline<ConsumptionEntry>) -> Void) {
+        // Shared model setup
+        let schema = Schema([
+            FoodEntry.self,
+            WaterEntry.self,
+            StepCountEntry.self,
+            Target.self,
+            DailyConsumption.self,
+            NotificationSetting.self
+        ])
+
+        guard let sharedURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.com.usw.consumption") else {
+            print("Failed to locate shared container URL")
+            completion(Timeline(entries: [placeholder(in: context)], policy: .atEnd))
+            return
         }
 
-        return Timeline(entries: entries, policy: .atEnd)
+        let databaseURL = sharedURL.appendingPathComponent("consumption.db")
+
+        let config = ModelConfiguration(schema: schema, url: databaseURL)
+        let container: ModelContainer
+
+        do {
+            container = try ModelContainer(for: schema, configurations: [config])
+        } catch {
+            print("Failed to load SwiftData container: \(error)")
+            completion(Timeline(entries: [placeholder(in: context)], policy: .atEnd))
+            return
+        }
+
+        let modelContext = ModelContext(container)
+
+        let today = Calendar.current.startOfDay(for: Date())
+
+        // Fetch today's consumption
+        let consumption = (try? modelContext.fetch(
+            FetchDescriptor<DailyConsumption>(
+                predicate: #Predicate { $0.date == today }
+            )
+        ).first) ?? DailyConsumption()
+
+        // Fetch targets
+        let target = (try? modelContext.fetch(FetchDescriptor<Target>()).first) ?? Target()
+
+        let entry = ConsumptionEntry(
+            date: Date(),
+            caloriesProgress: Double(consumption.totalCalories) / Double(target.calorieTarget),
+            waterProgress: Double(consumption.totalWater) / Double(target.waterTarget),
+            stepsProgress: Double(consumption.totalSteps) / Double(target.stepTarget)
+        )
+
+        let timeline = Timeline(entries: [entry], policy: .after(Date().addingTimeInterval(15 * 60)))
+        completion(timeline)
     }
-
-//    func relevances() async -> WidgetRelevances<ConfigurationAppIntent> {
-//        // Generate a list containing the contexts this widget is relevant in.
-//    }
 }
 
-struct SimpleEntry: TimelineEntry {
-    let date: Date
-    let configuration: ConfigurationAppIntent
-}
-
-struct Consumption_iOS_WidgetEntryView : View {
+struct ConsumptionWidgetEntryView: View {
     var entry: Provider.Entry
 
     var body: some View {
-        VStack {
-            Text("Time:")
-            Text(entry.date, style: .time)
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Today’s Progress")
+                .font(.headline)
 
-            Text("Favorite Emoji:")
-            Text(entry.configuration.favoriteEmoji)
+            ProgressView("Calories", value: min(entry.caloriesProgress, 1.0))
+                .tint(.red)
+
+            ProgressView("Water", value: min(entry.waterProgress, 1.0))
+                .tint(.blue)
+
+            ProgressView("Steps", value: min(entry.stepsProgress, 1.0))
+                .tint(.green)
         }
+        .padding()
     }
 }
 
+@main
 struct Consumption_iOS_Widget: Widget {
     let kind: String = "Consumption_iOS_Widget"
 
     var body: some WidgetConfiguration {
-        AppIntentConfiguration(kind: kind, intent: ConfigurationAppIntent.self, provider: Provider()) { entry in
-            Consumption_iOS_WidgetEntryView(entry: entry)
-                .containerBackground(.fill.tertiary, for: .widget)
+        StaticConfiguration(kind: kind, provider: Provider()) { entry in
+            ConsumptionWidgetEntryView(entry: entry)
         }
+        .configurationDisplayName("Daily Progress")
+        .description("See your calorie, water, and step progress.")
+        .supportedFamilies([.systemMedium])
     }
-}
-
-extension ConfigurationAppIntent {
-    fileprivate static var smiley: ConfigurationAppIntent {
-        let intent = ConfigurationAppIntent()
-        intent.favoriteEmoji = "😀"
-        return intent
-    }
-    
-    fileprivate static var starEyes: ConfigurationAppIntent {
-        let intent = ConfigurationAppIntent()
-        intent.favoriteEmoji = "🤩"
-        return intent
-    }
-}
-
-#Preview(as: .systemSmall) {
-    Consumption_iOS_Widget()
-} timeline: {
-    SimpleEntry(date: .now, configuration: .smiley)
-    SimpleEntry(date: .now, configuration: .starEyes)
 }

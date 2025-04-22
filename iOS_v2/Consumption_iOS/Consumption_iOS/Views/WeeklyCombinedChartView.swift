@@ -10,61 +10,78 @@ import SwiftData
 import Charts
 
 struct WeeklyCombinedChartView: View {
-    @Environment(\.calendar) private var calendar
+    @Query private var last7Days: [DailyConsumption]
+    @Query private var weeklyTargets: [Target]
 
-    // Automatically pulls all DailyConsumption entries and sorts them by date
-    @Query(sort: [SortDescriptor(\DailyConsumption.date)]) var allEntries: [DailyConsumption]
+    init() {
+        let calendar = Calendar.current
+        let startOfToday = calendar.startOfDay(for: Date())
+        let weekAgo = calendar.date(byAdding: .day, value: -6, to: startOfToday)!
 
-    // Filters the entries to just the last 7 days
-    private var last7Days: [DailyConsumption] {
-        let today = calendar.startOfDay(for: Date())
-        guard let sevenDaysAgo = calendar.date(byAdding: .day, value: -6, to: today) else {
-            return []
-        }
-        return allEntries.filter { $0.date >= sevenDaysAgo && $0.date <= today }
+        let dcPredicate: Predicate<DailyConsumption> = #Predicate { $0.date >= weekAgo }
+        _last7Days = Query(filter: dcPredicate, sort: \.date, order: .forward)
+
+        let tPredicate: Predicate<Target> = #Predicate { $0.date >= weekAgo }
+        _weeklyTargets = Query(filter: tPredicate, sort: \.date, order: .forward)
     }
 
     var body: some View {
         VStack(alignment: .leading) {
-            Text("7-Day Progress Overview")
+            Text("7-Day Overview")
                 .font(.headline)
                 .padding(.horizontal)
 
-            Text("🔍 \(last7Days.count) entries found") // Debug message
+            Chart {
+                ForEach(last7Days, id: \.self) { record in
+                    let date = record.date
+                    let target = weeklyTargets.first { Calendar.current.isDate($0.date, inSameDayAs: date) }
 
-            if last7Days.isEmpty {
-                Text("No data available.")
-                    .foregroundStyle(.secondary)
-                    .padding()
-            } else {
-                Chart {
-                    ForEach(last7Days, id: \.self) { entry in
-                        BarMark(
-                            x: .value("Date", entry.date, unit: .day),
-                            y: .value("Calories", entry.totalCalories)
-                        )
-                        .foregroundStyle(Color.red.opacity(0.7))
+                    let calorieProgress = normalized(value: record.totalCalories, goal: target?.calorieTarget ?? 2000)
+                    let waterProgress = normalized(value: record.totalWater, goal: target?.waterTarget ?? 2000)
+                    let stepProgress = normalized(value: record.totalSteps, goal: target?.stepTarget ?? 10000)
 
-                        BarMark(
-                            x: .value("Date", entry.date, unit: .day),
-                            y: .value("Water", entry.totalWater)
-                        )
-                        .foregroundStyle(Color.blue.opacity(0.7))
+                    BarMark(
+                        x: .value("Date", date, unit: .day),
+                        y: .value("Progress", calorieProgress)
+                    )
+                    .foregroundStyle(Color.red.opacity(0.8))
+                    .position(by: .value("Metric", "Calories"))
 
-                        BarMark(
-                            x: .value("Date", entry.date, unit: .day),
-                            y: .value("Steps", entry.totalSteps)
-                        )
-                        .foregroundStyle(Color.green.opacity(0.7))
-                    }
+                    BarMark(
+                        x: .value("Date", date, unit: .day),
+                        y: .value("Progress", waterProgress)
+                    )
+                    .foregroundStyle(Color.blue.opacity(0.8))
+                    .position(by: .value("Metric", "Water"))
+
+                    BarMark(
+                        x: .value("Date", date, unit: .day),
+                        y: .value("Progress", stepProgress)
+                    )
+                    .foregroundStyle(Color.green.opacity(0.8))
+                    .position(by: .value("Metric", "Steps"))
                 }
-                .chartYAxis {
-                    AxisMarks(position: .leading)
-                }
-                .frame(height: 240)
-                .padding(.horizontal)
             }
+            .chartYAxis {
+                AxisMarks(position: .leading) {
+                    AxisGridLine()
+                    AxisTick()
+                    AxisValueLabel()
+                }
+            }
+            .chartXAxis {
+                AxisMarks(values: .stride(by: .day)) { value in
+                    AxisValueLabel(format: .dateTime.day().month(.abbreviated))
+                    }
+            }
+            .frame(height: 240)
+            .padding(.horizontal)
         }
         .padding(.vertical)
+    }
+
+    private func normalized(value: Int, goal: Int) -> Double {
+        guard goal > 0 else { return 0.0 }
+        return min(Double(value) / Double(goal), 1.0)
     }
 }

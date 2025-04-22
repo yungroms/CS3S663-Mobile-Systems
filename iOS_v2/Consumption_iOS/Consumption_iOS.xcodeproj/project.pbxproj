@@ -41,6 +41,7 @@
 		6BF9D7272DA9485000855286 /* Consumption_iOS_WidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = Consumption_iOS_WidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		6BF9D7292DA9485000855286 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		6BF9D72B2DA9485000855286 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		915CA7B62DB3200F00BF39F2 /* Consumption_iOS_WidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Consumption_iOS_WidgetExtension.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -51,11 +52,26 @@
 			);
 			target = 6BF9D7262DA9485000855286 /* Consumption_iOS_WidgetExtension */;
 		};
+		915CA7B82DB3204700BF39F2 /* Exceptions for "Consumption_iOS" folder in "Consumption_iOS_WidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Models/DailyConsumption.swift,
+				Models/FoodEntry.swift,
+				Models/NotificationSetting.swift,
+				Models/StepCountEntry.swift,
+				Models/Target.swift,
+				Models/WaterEntry.swift,
+			);
+			target = 6BF9D7262DA9485000855286 /* Consumption_iOS_WidgetExtension */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		6BF9D6E32DA9453B00855286 /* Consumption_iOS */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				915CA7B82DB3204700BF39F2 /* Exceptions for "Consumption_iOS" folder in "Consumption_iOS_WidgetExtension" target */,
+			);
 			path = Consumption_iOS;
 			sourceTree = "<group>";
 		};
@@ -92,6 +108,7 @@
 		6BF9D6D82DA9453B00855286 = {
 			isa = PBXGroup;
 			children = (
+				915CA7B62DB3200F00BF39F2 /* Consumption_iOS_WidgetExtension.entitlements */,
 				6BF9D6E32DA9453B00855286 /* Consumption_iOS */,
 				6BF9D72D2DA9485000855286 /* Consumption_iOS_Widget */,
 				6BF9D7282DA9485000855286 /* Frameworks */,
@@ -375,8 +392,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Consumption_iOS/Preview Content\"";
+				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Consumption-iOS-Info.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "We need to read your step data to display your daily steps and weekly trends in the app.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -406,8 +425,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Consumption_iOS/Preview Content\"";
+				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Consumption-iOS-Info.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "We need to read your step data to display your daily steps and weekly trends in the app.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -433,8 +454,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = Consumption_iOS_WidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Consumption_iOS_Widget/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Consumption_iOS_Widget;
@@ -459,8 +482,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = Consumption_iOS_WidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Consumption_iOS_Widget/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Consumption_iOS_Widget;

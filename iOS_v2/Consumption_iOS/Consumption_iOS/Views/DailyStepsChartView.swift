@@ -28,8 +28,18 @@ struct DailyStepsChartView: View {
         .chartYAxis {
             AxisMarks(position: .leading)
         }
-        .frame(height: 150)
+        .chartXAxis {
+            AxisMarks(values: .stride(by: .day)) { value in
+                AxisGridLine()
+                AxisTick()
+                AxisValueLabel(format: .dateTime.day().month(.abbreviated), centered: true)
+            }
+        }
+        .chartPlotStyle { plotArea in
+            plotArea
+                .frame(minHeight: 250)
+                .padding(.horizontal, 10)
+        }
+        .frame(height: 300)
     }
 }
-
-

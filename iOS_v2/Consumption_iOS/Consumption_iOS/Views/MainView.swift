@@ -11,23 +11,22 @@ struct MainView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
-                // Dashboard content
                 DashboardView()
                     .padding(.top, 16)
 
-                Spacer(minLength: 24)
+                Spacer(minLength: 16)
 
                 HStack(spacing: 20) {
-                    NavigationLink(destination: FoodEntryView()) {
+                    NavigationLink(destination: FoodView()) {
                         MetricButton(label: "Food", systemImage: "fork.knife.circle.fill", color: .red)
                     }
-                    NavigationLink(destination: WaterEntryView()) {
+                    NavigationLink(destination: WaterView()) {
                         MetricButton(label: "Water", systemImage: "drop.circle.fill", color: .blue)
                     }
                 }
 
                 HStack(spacing: 20) {
-                    NavigationLink(destination: StepEntryView()) {
+                    NavigationLink(destination: StepView()) {
                         MetricButton(label: "Steps", systemImage: "figure.walk.circle.fill", color: .green)
                     }
                     NavigationLink(destination: SettingsView()) {

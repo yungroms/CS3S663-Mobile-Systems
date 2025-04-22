@@ -5,72 +5,51 @@
 //  Created by Morris-Stiff R O (FCES) on 11/04/2025.
 //
 
-import Foundation
 import UserNotifications
+import Foundation
 
 class NotificationManager {
     static let shared = NotificationManager()
-    
-    private init() { }
-    
+
     func requestAuthorization() {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
             if granted {
                 print("Notification permission granted.")
-            } else if let error = error {
-                print("Notification authorization error: \(error.localizedDescription)")
+            } else {
+                print("Notification permission denied or error: \(error?.localizedDescription ?? "unknown")")
             }
         }
     }
-    
-    /// Schedules three meal reminders with the times specified.
-    /// - Parameters:
-    ///   - breakfastTime: DateComponents for breakfast notification (e.g. hour: 8, minute: 0).
-    ///   - lunchTime: DateComponents for lunch notification (e.g. hour: 12, minute: 0).
-    ///   - dinnerTime: DateComponents for dinner notification (e.g. hour: 18, minute: 0).
-    func scheduleMealReminders(breakfastTime: DateComponents, lunchTime: DateComponents, dinnerTime: DateComponents) {
-        let center = UNUserNotificationCenter.current()
-        
-        // Define your meal reminders as tuples: (Meal Name, Time Components, Message)
-        let meals = [
-            ("Breakfast", breakfastTime, "Time for breakfast!"),
-            ("Lunch", lunchTime, "Time for lunch!"),
-            ("Dinner", dinnerTime, "Time for dinner!")
-        ]
-        
-        for meal in meals {
-            let content = UNMutableNotificationContent()
-            content.title = "FoodTracker Reminder - \(meal.0)"
-            content.body = "Don't forget to log your \(meal.0.lowercased()) meal!"
-            
-            // Create a repeating calendar trigger using the provided time components.
-            let trigger = UNCalendarNotificationTrigger(dateMatching: meal.1, repeats: true)
-            
-            let request = UNNotificationRequest(identifier: "MealReminder_\(meal.0)", content: content, trigger: trigger)
-            
-            center.add(request) { error in
-                if let error = error {
-                    print("Error scheduling \(meal.0) reminder: \(error.localizedDescription)")
-                }
-            }
-        }
+
+    func scheduleMealReminders(
+        breakfastTime: DateComponents,
+        lunchTime: DateComponents,
+        dinnerTime: DateComponents
+    ) {
+        scheduleReminder(identifier: "breakfastReminder", title: "Don't forget breakfast!", hour: breakfastTime.hour ?? 8, minute: breakfastTime.minute ?? 0)
+        scheduleReminder(identifier: "lunchReminder", title: "It's lunchtime!", hour: lunchTime.hour ?? 12, minute: lunchTime.minute ?? 0)
+        scheduleReminder(identifier: "dinnerReminder", title: "Time for dinner!", hour: dinnerTime.hour ?? 18, minute: dinnerTime.minute ?? 0)
     }
-    
-    // Optional default daily reminder.
-    func scheduleDailyReminder() {
+
+
+    private func scheduleReminder(identifier: String, title: String, hour: Int, minute: Int) {
         let content = UNMutableNotificationContent()
-        content.title = "FoodTracker Reminder"
-        content.body = "Don't forget to log your food, water, and step entries for today."
-        
+        content.title = title
+        content.body = "Log your meal in the Consumption app."
+        content.sound = .default
+
         var dateComponents = DateComponents()
-        dateComponents.hour = 20  // 8:00 PM reminder
+        dateComponents.hour = hour
+        dateComponents.minute = minute
+
         let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
-        
-        let request = UNNotificationRequest(identifier: "DailyReminder", content: content, trigger: trigger)
-        
+        let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
+
         UNUserNotificationCenter.current().add(request) { error in
             if let error = error {
-                print("Error scheduling daily reminder: \(error.localizedDescription)")
+                print("Failed to schedule \(identifier): \(error.localizedDescription)")
+            } else {
+                print("Scheduled: \(identifier) at \(hour):\(String(format: "%02d", minute))")
             }
         }
     }

@@ -19,7 +19,7 @@ class Target {
     init() {
         self.calorieTarget = 2000
         self.waterTarget = 2000
-        self.stepTarget = 5000
+        self.stepTarget = 10000
         self.date = Calendar.current.startOfDay(for: Date())
     }
 }
